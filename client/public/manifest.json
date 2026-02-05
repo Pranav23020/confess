@@ -1,0 +1,17 @@
+{
+  "short_name": "Confessions",
+  "name": "Anonymous Confessions",
+  "description": "Share your thoughts anonymously. All confessions expire in 24 hours.",
+  "icons": [
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3617cf",
+  "background_color": "#141121",
+  "orientation": "portrait"
+}
