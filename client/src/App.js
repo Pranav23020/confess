@@ -5,7 +5,6 @@ import NewConfessionScreen from './screens/NewConfessionScreen';
 import ConfessionDetailScreen from './screens/ConfessionDetailScreen';
 import ExploreScreen from './screens/ExploreScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import AccessLimitScreen from './screens/LimitReachedScreen'; // Fix import if file name matches
 import LimitReachedScreen from './screens/LimitReachedScreen';
 import ReportScreen from './screens/ReportScreen';
 import LoginScreen from './screens/LoginScreen';
