@@ -409,9 +409,9 @@ const HomeScreen = () => {
                   <span className="opacity-30">/</span>
                   <button type="button" className="hover:text-primary transition-colors">Help</button>
                   <span className="opacity-30">/</span>
-                  <button type="button" className="hover:text-primary transition-colors">Privacy</button>
+                  <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
                   <span className="opacity-30">/</span>
-                  <button type="button" className="hover:text-primary transition-colors">Terms</button>
+                  <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
                 </div>
                 <p className="text-[10px] text-slate-400/60 dark:text-slate-500/60 mt-6 font-bold uppercase tracking-[0.3em]">© 2026 Confessions Project</p>
               </div>
