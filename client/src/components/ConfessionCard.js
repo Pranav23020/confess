@@ -2,6 +2,7 @@ import React, { useState, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { likesAPI } from '../api';
 import ShareTemplateModal from './ShareTemplateModal';
+import HashtagBadges from './HashtagBadges';
 import { AuthContext } from '../context/AuthContext';
 
 const ConfessionCard = ({ confession, showExpiry = false }) => {
@@ -148,9 +149,16 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
             )}
           </div>
 
-          <p className="text-xl md:text-2xl font-bold leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-8 [text-wrap:balance]">
+          <p className="text-xl md:text-2xl font-bold leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-6 [text-wrap:balance]">
             {confession.text}
           </p>
+
+          {/* Hashtags Display - Only visible to creator */}
+          {user && confession.userId === user._id && confession.hashtags && confession.hashtags.length > 0 && (
+            <div className="mb-6">
+              <HashtagBadges hashtags={confession.hashtags} size="sm" />
+            </div>
+          )}
 
           {images.length > 0 && (
             <div className="mb-6 relative group/images">

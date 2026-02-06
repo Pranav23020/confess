@@ -19,7 +19,7 @@ const DesktopNav = () => {
               <span className="material-symbols-outlined text-white text-2xl relative z-10">auto_awesome</span>
             </div>
             <div className="flex flex-col -gap-1">
-              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Confessions</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">anonconfess</span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold opacity-80">Safe Space</span>
             </div>
           </Link>

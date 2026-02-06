@@ -1,6 +1,6 @@
 {
-  "short_name": "Confessions",
-  "name": "Anonymous Confessions",
+  "short_name": "anonconfess",
+  "name": "anonconfess",
   "description": "Share your thoughts anonymously. All confessions expire in 24 hours.",
   "icons": [
     {

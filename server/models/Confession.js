@@ -69,6 +69,17 @@ const confessionSchema = new mongoose.Schema({
     default: false
   },
   pollOptions: [pollOptionSchema],
+  hashtags: {
+    type: [String],
+    default: [],
+    index: true,
+    lowercase: true,
+    trim: true
+  },
+  hashtagViews: {
+    type: [String], // Store unique deviceHashes of people who viewed based on hashtags
+    default: []
+  },
   scheduledFor: {
     type: Date,
     index: true

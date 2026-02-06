@@ -4,6 +4,7 @@ import HomeScreen from './screens/HomeScreen';
 import NewConfessionScreen from './screens/NewConfessionScreen';
 import ConfessionDetailScreen from './screens/ConfessionDetailScreen';
 import ExploreScreen from './screens/ExploreScreen';
+import HashtagExploreScreen from './screens/HashtagExploreScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LimitReachedScreen from './screens/LimitReachedScreen';
 import ReportScreen from './screens/ReportScreen';
@@ -27,6 +28,7 @@ function App() {
               <Route path="/new" element={<NewConfessionScreen />} />
               <Route path="/confession/:id" element={<ConfessionDetailScreen />} />
               <Route path="/explore" element={<ExploreScreen />} />
+              <Route path="/hashtags/:tag" element={<HashtagExploreScreen />} />
               <Route path="/profile" element={<ProfileScreen />} />
               <Route path="/limit-reached" element={<LimitReachedScreen />} />
               <Route path="/report/:id/:type" element={<ReportScreen />} />

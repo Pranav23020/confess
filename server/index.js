@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const session = require('express-session');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const redis = require('./utils/redis');
 const { isRedisConnected, healthCheck: redisHealthCheck, closeRedis } = require('./utils/redis');
@@ -19,6 +19,7 @@ const exploreRoutes = require('./routes/explore');
 const draftRoutes = require('./routes/drafts');
 const pollRoutes = require('./routes/polls');
 const blockedKeywordsRoutes = require('./routes/blockedKeywords');
+const hashtagRoutes = require('./routes/hashtags');
 
 const app = express();
 const passport = require('passport');
@@ -92,6 +93,7 @@ app.use('/api/explore', exploreRoutes);
 app.use('/api/drafts', draftRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/blocked-keywords', blockedKeywordsRoutes);
+app.use('/api/hashtags', hashtagRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

@@ -4,11 +4,7 @@ const OFFLINE_URL = '/offline.html';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/static/js/main.js', // Note: actual paths vary by build
-  '/static/css/main.css',
   '/manifest.json',
-  '/logo192.png',
-  '/logo512.png',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
@@ -17,7 +13,21 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      // Add assets and handle failures gracefully
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => 
+          fetch(url)
+            .then(response => {
+              if (response.ok) {
+                return cache.put(url, response);
+              }
+            })
+            .catch(err => {
+              console.warn(`Failed to cache ${url}:`, err);
+              // Continue even if some assets fail
+            })
+        )
+      );
     })
   );
   self.skipWaiting();

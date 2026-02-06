@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TextAreaField from '../components/TextAreaField';
+import HashtagInput from '../components/HashtagInput';
 import { confessionsAPI, userAPI, draftsAPI } from '../api';
 import { AuthContext } from '../context/AuthContext';
 
@@ -435,13 +436,9 @@ const NewConfessionScreen = () => {
                 </div>
               )}
 
-              <TextAreaField
-                ref={textAreaRef}
+              <HashtagInput
                 value={text}
                 onChange={setText}
-                placeholder="Write what you've never said…"
-                maxLength={500}
-                autoFocus={false}
               />
 
               {/* Enhanced Character Counter */}

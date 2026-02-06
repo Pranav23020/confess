@@ -4,6 +4,7 @@ const Confession = require('../models/Confession');
 const Reply = require('../models/Reply');
 const { generateDeviceHash, getExpirationDate, getHoursRemaining, sanitizeText } = require('../utils/helpers');
 const { validateConfessionText } = require('../utils/profanityFilter');
+const { extractHashtags, trackHashtagView } = require('../utils/hashtagHelpers');
 const { confessionLimiter } = require('../middleware/rateLimiter');
 const { protect } = require('../middleware/auth');
 const { upload, optimizeImages } = require('../middleware/upload');
@@ -69,6 +70,9 @@ router.post('/', protect, confessionLimiter, upload.fields([
     const { maskPII } = require('../utils/moderation');
     const sanitizedAndMaskedText = maskPII(sanitizeText(text));
 
+    // Extract hashtags from the text
+    const hashtags = extractHashtags(text);
+
     // Prepare confession data
     const confessionData = {
       text: sanitizedAndMaskedText,
@@ -76,6 +80,7 @@ router.post('/', protect, confessionLimiter, upload.fields([
       deviceHash,
       userId: req.user._id, // Store authenticated user
       isPoll: isPoll || false,
+      hashtags: hashtags, // Add extracted hashtags
       expiresAt: getExpirationDate()
     };
 
