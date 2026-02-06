@@ -64,6 +64,28 @@ app.use(passport.session()); // Enable persistent login sessions
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root route - API info
+app.get('/', (req, res) => {
+  res.json({
+    name: 'anonconfess API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth/*',
+      confessions: '/api/confessions/*',
+      replies: '/api/replies/*',
+      likes: '/api/likes/*',
+      explore: '/api/explore/*',
+      hashtags: '/api/hashtags/*',
+      user: '/api/user/*',
+      reports: '/api/reports/*',
+      drafts: '/api/drafts/*',
+      polls: '/api/polls/*'
+    }
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 
