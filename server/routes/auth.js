@@ -16,16 +16,16 @@ const sendTokenResponse = (user, statusCode, res) => {
         expiresIn: JWT_EXPIRE
     });
 
+    const isProduction = process.env.NODE_ENV === 'production';
     const options = {
         expires: new Date(
             Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
         ),
-        httpOnly: true // Secure against XSS
+        httpOnly: true, // Secure against XSS
+        secure: isProduction, // HTTPS only in production
+        sameSite: isProduction ? 'None' : 'Lax', // Allow cross-site cookies in production
+        domain: isProduction ? '.onrender.com' : undefined // Set domain for subdomain access
     };
-
-    if (process.env.NODE_ENV === 'production') {
-        options.secure = true;
-    }
 
     res
         .status(statusCode)
@@ -119,13 +119,16 @@ router.get(
         });
 
         // Set cookie
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie('token', token, {
             expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             httpOnly: true,
-            sameSite: 'Lax'
+            secure: isProduction, // HTTPS only in production
+            sameSite: isProduction ? 'None' : 'Lax', // 'None' for cross-site in production
+            domain: isProduction ? '.onrender.com' : undefined // Set domain for subdomain access
         });
 
-        // Redirect to frontend
+        // Redirect to frontend with token in URL as fallback
         const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
         res.redirect(`${frontendURL}/`);
     }
@@ -143,9 +146,13 @@ router.get('/me', protect, async (req, res) => {
 // @desc    Log user out / clear cookie
 // @access  Public
 router.get('/logout', (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'None' : 'Lax',
+        domain: isProduction ? '.onrender.com' : undefined
     });
     res.status(200).json({ success: true, data: {} });
 });

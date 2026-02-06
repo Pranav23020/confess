@@ -47,14 +47,17 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 
 // Session configuration
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction, // HTTPS only in production
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    sameSite: isProduction ? 'None' : 'Lax',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    domain: isProduction ? '.onrender.com' : undefined
   }
 }));
 

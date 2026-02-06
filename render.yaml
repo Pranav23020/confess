@@ -13,7 +13,11 @@
     { key = "JWT_SECRET", scope = "env" },
     { key = "MAX_CONFESSIONS_PER_DAY", value = "5" },
     { key = "MAX_REPLIES_PER_DAY", value = "20" },
-    { key = "ALLOWED_ORIGINS", scope = "env" }
+    { key = "ALLOWED_ORIGINS", scope = "env" },
+    { key = "FRONTEND_URL", scope = "env" },
+    { key = "GOOGLE_CLIENT_ID", scope = "env" },
+    { key = "GOOGLE_CLIENT_SECRET", scope = "env" },
+    { key = "GOOGLE_CALLBACK_URL", scope = "env" }
   ]
   
 
