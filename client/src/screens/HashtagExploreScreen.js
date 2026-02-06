@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Hash, TrendingUp, Zap } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
@@ -16,11 +16,7 @@ const HashtagExploreScreen = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchHashtagConfessions();
-  }, [tag, page]);
-
-  const fetchHashtagConfessions = async () => {
+  const fetchHashtagConfessions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -44,7 +40,11 @@ const HashtagExploreScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tag, page]);
+
+  useEffect(() => {
+    fetchHashtagConfessions();
+  }, [fetchHashtagConfessions]);
 
   const handleLoadMore = () => {
     if (page < totalPages) {

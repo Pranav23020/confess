@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Hash, X, Zap } from 'lucide-react';
+import { Hash, Zap } from 'lucide-react';
 import api from '../api';
 
 const HashtagInput = ({ value, onChange, onHashtagSelect }) => {

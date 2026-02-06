@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TextAreaField from '../components/TextAreaField';
 import HashtagInput from '../components/HashtagInput';
 import { confessionsAPI, userAPI, draftsAPI } from '../api';
 import { AuthContext } from '../context/AuthContext';
@@ -11,7 +10,6 @@ const NewConfessionScreen = () => {
   const [text, setText] = useState('');
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState(null);
-  const [canPost, setCanPost] = useState(true);
   const [category, setCategory] = useState('other');
   const [isPoll, setIsPoll] = useState(false);
   const [pollOptions, setPollOptions] = useState([{ text: '' }, { text: '' }]);
@@ -54,34 +52,18 @@ const NewConfessionScreen = () => {
     return () => clearTimeout(toxicityTimerRef.current);
   }, [text]);
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    checkCanPost();
-    loadDraft();
-  }, [user, navigate]);
-
-  useEffect(() => {
-    return () => {
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [imagePreviews]);
-
-  const checkCanPost = async () => {
+  const checkCanPost = useCallback(async () => {
     try {
       const response = await userAPI.getActiveCount();
-      setCanPost(response.data.canPost);
       if (!response.data.canPost) {
         navigate('/limit-reached');
       }
     } catch (err) {
       console.error('Failed to check posting status:', err);
     }
-  };
+  }, [navigate]);
 
-  const loadDraft = async () => {
+  const loadDraft = useCallback(async () => {
     try {
       const response = await draftsAPI.get();
       const draft = response.data?.draft;
@@ -106,7 +88,22 @@ const NewConfessionScreen = () => {
     } finally {
       initializedRef.current = true;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    checkCanPost();
+    loadDraft();
+  }, [user, navigate, checkCanPost, loadDraft]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
   useEffect(() => {
     if (!initializedRef.current) return;

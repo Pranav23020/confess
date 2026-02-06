@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import ReplyBubble from '../components/ReplyBubble';
@@ -31,25 +31,24 @@ const ConfessionDetailScreen = () => {
   const { showToast } = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    fetchConfession();
-
-    const handleEngagement = (data) => {
-      if (data.confessionId === id) {
-        setLikeCount(data.likeCount);
-        setConfession(prev => prev ? { ...prev, replyCount: data.replyCount } : prev);
-      }
-    };
-
-    const socket = require('../utils/socket').default;
-    socket.on('confession:engagement', handleEngagement);
-
-    return () => {
-      socket.off('confession:engagement', handleEngagement);
-    };
+  const fetchPollResults = useCallback(async () => {
+    try {
+      setPollLoading(true);
+      const res = await pollsAPI.results(id);
+      setPollResults(res.data.pollResults || []);
+      setPollMeta({
+        totalVotes: res.data.totalVotes || 0,
+        hasVoted: res.data.hasVoted,
+        votedOption: res.data.votedOption
+      });
+    } catch (err) {
+      console.error('Failed to fetch poll results:', err);
+    } finally {
+      setPollLoading(false);
+    }
   }, [id]);
 
-  const fetchConfession = async () => {
+  const fetchConfession = useCallback(async () => {
     try {
       setLoading(true);
       const response = await confessionsAPI.getById(id);
@@ -72,24 +71,25 @@ const ConfessionDetailScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, fetchPollResults]);
 
-  const fetchPollResults = async () => {
-    try {
-      setPollLoading(true);
-      const res = await pollsAPI.results(id);
-      setPollResults(res.data.pollResults || []);
-      setPollMeta({
-        totalVotes: res.data.totalVotes || 0,
-        hasVoted: res.data.hasVoted,
-        votedOption: res.data.votedOption
-      });
-    } catch (err) {
-      console.error('Failed to fetch poll results:', err);
-    } finally {
-      setPollLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchConfession();
+
+    const handleEngagement = (data) => {
+      if (data.confessionId === id) {
+        setLikeCount(data.likeCount);
+        setConfession(prev => prev ? { ...prev, replyCount: data.replyCount } : prev);
+      }
+    };
+
+    const socket = require('../utils/socket').default;
+    socket.on('confession:engagement', handleEngagement);
+
+    return () => {
+      socket.off('confession:engagement', handleEngagement);
+    };
+  }, [id, fetchConfession]);
 
   const handleVote = async (optionIndex) => {
     try {
@@ -196,17 +196,17 @@ const ConfessionDetailScreen = () => {
     setShowImageModal(true);
   };
 
-  const closeImageModal = () => {
+  const closeImageModal = useCallback(() => {
     setShowImageModal(false);
-  };
+  }, []);
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  }, [images.length]);
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
+  }, [images.length]);
 
   useEffect(() => {
     if (!showImageModal) return;
@@ -217,7 +217,7 @@ const ConfessionDetailScreen = () => {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [showImageModal]);
+  }, [showImageModal, closeImageModal, goPrev, goNext]);
 
   const buildReplyTree = (list) => {
     const map = {};

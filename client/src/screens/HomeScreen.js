@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import ConfessionCard from '../components/ConfessionCard';
@@ -64,15 +64,7 @@ const HomeScreen = () => {
     { label: 'Other', icon: 'more_horiz', value: 'other', gradient: 'from-slate-400 to-slate-500' }
   ];
 
-  useEffect(() => {
-    fetchConfessions(1, false);
-    fetchActiveCount();
-    fetchBlockedKeywords();
-    fetchTopToday();
-    setNewConfessionsCount(0); // Reset count on category change
-  }, [selectedCategory]);
-
-  const fetchConfessions = async (pageNum = 1, append = false) => {
+  const fetchConfessions = useCallback(async (pageNum = 1, append = false) => {
     try {
       if (append) {
         setLoadingMore(true);
@@ -103,7 +95,15 @@ const HomeScreen = () => {
         setLoading(false);
       }
     }
-  };
+  }, [selectedCategory, feedLimit]);
+
+  useEffect(() => {
+    fetchConfessions(1, false);
+    fetchActiveCount();
+    fetchBlockedKeywords();
+    fetchTopToday();
+    setNewConfessionsCount(0); // Reset count on category change
+  }, [selectedCategory, fetchConfessions]);
 
   const fetchActiveCount = async () => {
     try {
@@ -161,7 +161,7 @@ const HomeScreen = () => {
     );
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, page]);
+  }, [hasMore, loadingMore, loading, page, fetchConfessions]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) {
@@ -405,13 +405,13 @@ const HomeScreen = () => {
               </div>
               <div className="p-8 border-t border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
                 <div className="flex flex-wrap gap-x-3 gap-y-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                  <a href="#" className="hover:text-primary transition-colors">About</a>
+                  <button type="button" className="hover:text-primary transition-colors">About</button>
                   <span className="opacity-30">/</span>
-                  <a href="#" className="hover:text-primary transition-colors">Help</a>
+                  <button type="button" className="hover:text-primary transition-colors">Help</button>
                   <span className="opacity-30">/</span>
-                  <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+                  <button type="button" className="hover:text-primary transition-colors">Privacy</button>
                   <span className="opacity-30">/</span>
-                  <a href="#" className="hover:text-primary transition-colors">Terms</a>
+                  <button type="button" className="hover:text-primary transition-colors">Terms</button>
                 </div>
                 <p className="text-[10px] text-slate-400/60 dark:text-slate-500/60 mt-6 font-bold uppercase tracking-[0.3em]">© 2026 Confessions Project</p>
               </div>
