@@ -16,7 +16,7 @@ const getCookieOptions = (isProduction = false) => {
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         httpOnly: true, // Secure against XSS
         secure: isProduction, // HTTPS only in production
-        sameSite: 'Lax', // Use Lax for better compatibility
+        sameSite: isProduction ? 'None' : 'Lax', // 'None' required for cross-domain in production
         path: '/' // Ensure cookie is available for all paths
     };
 };

@@ -57,7 +57,7 @@ app.use(session({
   cookie: {
     secure: isProduction, // HTTPS only in production
     httpOnly: true,
-    sameSite: 'Lax', // Use Lax for better compatibility
+    sameSite: isProduction ? 'None' : 'Lax', // 'None' required for cross-domain in production
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     path: '/' // Ensure cookie is available for all paths
   }
