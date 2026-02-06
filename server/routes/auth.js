@@ -114,11 +114,6 @@ router.get(
     '/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
-        // Successful authentication, redirect home with token cookie set by sendTokenResponse logic?
-        // Wait, passport session strategy does user serialization. 
-        // But we want JWT.
-        // We can manually issue JWT here.
-
         const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
             expiresIn: JWT_EXPIRE
         });
@@ -126,15 +121,13 @@ router.get(
         // Set cookie
         res.cookie('token', token, {
             expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            httpOnly: true
+            httpOnly: true,
+            sameSite: 'Lax'
         });
 
-        // Redirect to frontend (localhost:3000)
-        // We might need to pass token in query param if cookie setup is tricky cross-port in dev
-        // But since we proxy /api -> 5000, cookies set on localhost:5000 might not stick to localhost:3000 unless "proxy" handles it well or we use same domain.
-        // Actually, localhost:3000 -> /api/... -> localhost:5000.  The cookie domain is localhost. It should work.
-
-        res.redirect('http://localhost:3000/');
+        // Redirect to frontend
+        const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendURL}/`);
     }
 );
 

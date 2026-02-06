@@ -21,7 +21,9 @@ const LoginScreen = () => {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:5000/api/auth/google';
+        const API_URL = process.env.REACT_APP_API_URL || '/api';
+        const baseURL = API_URL.replace(/\/api$/, '');
+        window.location.href = `${baseURL}/api/auth/google`;
     };
 
     return (
