@@ -152,4 +152,17 @@ router.get('/logout', (req, res) => {
     res.status(200).json({ success: true, data: {} });
 });
 
+// @route   GET /api/auth/debug
+// @desc    Debug endpoint to check cookies and headers
+// @access  Public
+router.get('/debug', (req, res) => {
+    res.json({
+        cookies: req.cookies,
+        authorization: req.headers.authorization ? 'present' : 'missing',
+        origin: req.headers.origin,
+        host: req.headers.host,
+        userAgent: req.headers['user-agent']?.substring(0, 50)
+    });
+});
+
 module.exports = router;

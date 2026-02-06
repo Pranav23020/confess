@@ -14,6 +14,13 @@ exports.protect = async (req, res, next) => {
         token = req.headers.authorization.split(' ')[1];
     }
 
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+        console.log('[AUTH] Cookies received:', req.cookies ? Object.keys(req.cookies) : 'none');
+        console.log('[AUTH] Authorization header:', req.headers.authorization ? 'present' : 'missing');
+        console.log('[AUTH] Token found:', !!token);
+    }
+
     // 2. Check if token exists
     if (!token) {
         return res.status(401).json({
