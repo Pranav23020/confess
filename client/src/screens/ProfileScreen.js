@@ -59,13 +59,15 @@ const ProfileScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       navigate('/login');
       return;
     }
-    fetchUserProfile();
-    fetchBlockedKeywords();
-  }, [user, navigate, fetchUserProfile, fetchBlockedKeywords]);
+    if (user) {
+      fetchUserProfile();
+      fetchBlockedKeywords();
+    }
+  }, [user, loading, navigate, fetchUserProfile, fetchBlockedKeywords]);
 
   const getHoursRemaining = (expiresAt) => {
     const now = new Date();

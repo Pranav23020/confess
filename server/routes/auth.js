@@ -128,9 +128,9 @@ router.get(
             domain: isProduction ? '.onrender.com' : undefined // Set domain for subdomain access
         });
 
-        // Redirect to frontend with token in URL as fallback
+        // Redirect to frontend with oauth flag to trigger refetch
         const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendURL}/`);
+        res.redirect(`${frontendURL}/?oauth=true`);
     }
 );
 

@@ -8,8 +8,14 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Load user on mount
+    // Load user on mount and detect OAuth redirect
     useEffect(() => {
+        // Check for OAuth callback redirect
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('oauth')) {
+            // Remove the query parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
         fetchUser();
     }, []);
 
