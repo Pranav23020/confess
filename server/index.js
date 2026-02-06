@@ -55,9 +55,9 @@ app.use(session({
   cookie: {
     secure: isProduction, // HTTPS only in production
     httpOnly: true,
-    sameSite: isProduction ? 'None' : 'Lax',
+    sameSite: 'Lax', // Use Lax for better compatibility
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: isProduction ? '.onrender.com' : undefined
+    path: '/' // Ensure cookie is available for all paths
   }
 }));
 
