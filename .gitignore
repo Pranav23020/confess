@@ -15,3 +15,4 @@ build/
 client/build/
 coverage/
 .nyc_output/
+server/uploads/

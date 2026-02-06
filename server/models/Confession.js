@@ -22,6 +22,14 @@ const confessionSchema = new mongoose.Schema({
     maxlength: 500,
     trim: true
   },
+  image: {
+    type: String,
+    default: null
+  },
+  images: {
+    type: [String],
+    default: []
+  },
   category: {
     type: String,
     enum: ['love', 'career', 'secrets', 'life', 'relationships', 'mental-health', 'other'],

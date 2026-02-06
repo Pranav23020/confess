@@ -12,6 +12,12 @@ const likeSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+    index: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

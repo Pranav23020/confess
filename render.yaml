@@ -1,0 +1,21 @@
+[[services]]
+  type = "web"
+  name = "confess-backend"
+  runtime = "node"
+  buildCommand = "npm install"
+  startCommand = "npm start"
+  envVars = [
+    { key = "NODE_ENV", value = "production" },
+    { key = "MONGODB_URI", scope = "env" },
+    { key = "REDIS_URL", scope = "env" },
+    { key = "DEVICE_HASH_SECRET", scope = "env" },
+    { key = "SESSION_SECRET", scope = "env" },
+    { key = "JWT_SECRET", scope = "env" },
+    { key = "MAX_CONFESSIONS_PER_DAY", value = "5" },
+    { key = "MAX_REPLIES_PER_DAY", value = "20" },
+    { key = "ALLOWED_ORIGINS", scope = "env" }
+  ]
+  
+
+[[envVarGroups]]
+  name = "production"

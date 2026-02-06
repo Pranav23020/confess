@@ -27,6 +27,11 @@ module.exports = {
       boxShadow: {
         "glow": "0 0 20px rgba(54, 23, 207, 0.5)",
         "card": "0 4px 20px rgba(0, 0, 0, 0.2)",
+        "premium": "0 10px 40px -10px rgba(0, 0, 0, 0.5)",
+        "logo": "0 0 15px rgba(54, 23, 207, 0.4)",
+      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%)',
       }
     },
   },

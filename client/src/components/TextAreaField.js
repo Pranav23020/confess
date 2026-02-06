@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
-const TextAreaField = ({ 
-  value, 
-  onChange, 
-  placeholder, 
+const TextAreaField = forwardRef(({
+  value,
+  onChange,
+  placeholder,
   maxLength = 500,
   minHeight = '200px',
-  autoFocus = false 
-}) => {
+  autoFocus = false
+}, ref) => {
   return (
     <div className="flex-1 flex flex-col">
       <textarea
+        ref={ref}
         autoFocus={autoFocus}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -19,13 +20,10 @@ const TextAreaField = ({
         style={{ minHeight }}
         placeholder={placeholder}
       />
-      <div className="flex justify-end pb-2 mt-2">
-        <span className={`text-xs font-semibold tracking-wide transition-colors ${value.length > maxLength ? 'text-red-500' : 'text-slate-400 dark:text-slate-600'}`}>
-          {value.length}/{maxLength}
-        </span>
-      </div>
     </div>
   );
-};
+});
+
+TextAreaField.displayName = 'TextAreaField';
 
 export default TextAreaField;

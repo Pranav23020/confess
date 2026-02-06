@@ -49,12 +49,17 @@ module.exports = function (passport) {
         )
     );
 
-    // Serialization (if using sessions, keeping here standard, though we might use JWT)
+    // Serialization for sessions
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });
 
-    passport.deserializeUser((id, done) => {
-        User.findById(id, (err, user) => done(err, user));
+    passport.deserializeUser(async (id, done) => {
+        try {
+            const user = await User.findById(id);
+            done(null, user);
+        } catch (err) {
+            done(err, null);
+        }
     });
 };

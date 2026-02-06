@@ -6,6 +6,10 @@ const draftSchema = new mongoose.Schema({
     maxlength: 500,
     trim: true
   },
+  image: {
+    type: String,
+    default: null
+  },
   category: {
     type: String,
     enum: ['love', 'career', 'secrets', 'life', 'relationships', 'mental-health', 'other'],
@@ -14,7 +18,7 @@ const draftSchema = new mongoose.Schema({
   deviceHash: {
     type: String,
     required: true,
-    index: true
+    index: false
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

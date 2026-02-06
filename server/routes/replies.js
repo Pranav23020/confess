@@ -5,32 +5,34 @@ const Confession = require('../models/Confession');
 const { generateDeviceHash, sanitizeText } = require('../utils/helpers');
 const { validateReplyText } = require('../utils/profanityFilter');
 const { replyLimiter } = require('../middleware/rateLimiter');
+const { protect } = require('../middleware/auth');
 
 /**
  * POST /api/replies
  * Create a reply to a confession or another reply (threading)
+ * @access Private (requires login)
  */
-router.post('/', replyLimiter, async (req, res) => {
+router.post('/', protect, replyLimiter, async (req, res) => {
   try {
     const { confessionId, text, parentReplyId } = req.body;
     const deviceHash = generateDeviceHash(req);
-    
+
     // Validate text
     const validation = validateReplyText(text);
     if (!validation.isValid) {
       return res.status(400).json({ error: { message: validation.errors[0] } });
     }
-    
+
     // Check if confession exists and is not expired
     const confession = await Confession.findOne({
       _id: confessionId,
       expiresAt: { $gt: new Date() }
     });
-    
+
     if (!confession) {
       return res.status(404).json({ error: { message: 'Confession not found or expired' } });
     }
-    
+
     if (confession.isHidden) {
       return res.status(403).json({ error: { message: 'Cannot reply to hidden confession' } });
     }
@@ -47,22 +49,35 @@ router.post('/', replyLimiter, async (req, res) => {
         return res.status(404).json({ error: { message: 'Parent reply not found' } });
       }
     }
-    
+
     // Create reply
     const reply = new Reply({
       confessionId,
       parentReplyId: parentReplyId || null,
       text: sanitizeText(text),
-      deviceHash
+      deviceHash,
+      userId: req.user._id // Store authenticated user
     });
-    
+
     await reply.save();
-    
+
     // Increment reply count on confession
-    await Confession.findByIdAndUpdate(confessionId, {
+    const updatedConfession = await Confession.findByIdAndUpdate(confessionId, {
       $inc: { replyCount: 1 }
-    });
-    
+    }, { new: true });
+
+    // Emit real-time event
+    try {
+      const io = require('../utils/socket').getIO();
+      io.emit('confession:engagement', {
+        confessionId,
+        likeCount: updatedConfession.likeCount,
+        replyCount: updatedConfession.replyCount
+      });
+    } catch (ioErr) {
+      console.error('Socket error emitting reply engagement:', ioErr);
+    }
+
     res.status(201).json({
       success: true,
       reply: {
@@ -73,7 +88,7 @@ router.post('/', replyLimiter, async (req, res) => {
         createdAt: reply.createdAt
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating reply:', error);
     res.status(500).json({ error: { message: 'Failed to create reply' } });
@@ -90,15 +105,15 @@ router.get('/:confessionId', async (req, res) => {
       confessionId: req.params.confessionId,
       isHidden: false
     })
-    .sort({ createdAt: 1 })
-    .select('-deviceHash')
-    .lean();
-    
+      .sort({ createdAt: 1 })
+      .select('-deviceHash')
+      .lean();
+
     res.json({
       success: true,
       replies
     });
-    
+
   } catch (error) {
     console.error('Error fetching replies:', error);
     res.status(500).json({ error: { message: 'Failed to fetch replies' } });

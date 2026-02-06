@@ -12,5 +12,4 @@ root.render(
 );
 
 // Register service worker for PWA
-// Register service worker for PWA
-serviceWorkerRegistration.unregister();
+serviceWorkerRegistration.register();

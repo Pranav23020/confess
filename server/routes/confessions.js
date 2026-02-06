@@ -5,16 +5,37 @@ const Reply = require('../models/Reply');
 const { generateDeviceHash, getExpirationDate, getHoursRemaining, sanitizeText } = require('../utils/helpers');
 const { validateConfessionText } = require('../utils/profanityFilter');
 const { confessionLimiter } = require('../middleware/rateLimiter');
-const { optionalProtect } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
+const { upload, optimizeImages } = require('../middleware/upload');
 
 /**
  * POST /api/confessions
  * Create a new confession
+ * @access Private (requires login)
  */
-router.post('/', confessionLimiter, async (req, res) => {
+router.post('/', protect, confessionLimiter, upload.fields([
+  { name: 'images', maxCount: 5 },
+  { name: 'image', maxCount: 1 }
+]), optimizeImages, async (req, res) => {
   try {
-    const { text, category, isPoll, pollOptions, scheduledFor } = req.body;
+    let { text, category, isPoll, pollOptions, scheduledFor } = req.body;
     const deviceHash = generateDeviceHash(req);
+
+    // Parse isPoll boolean from string (FormData sends as string)
+    isPoll = isPoll === 'true' || isPoll === true;
+
+    // Parse pollOptions from FormData format
+    if (isPoll && typeof pollOptions === 'object' && !Array.isArray(pollOptions)) {
+      pollOptions = Object.values(pollOptions).map(opt => typeof opt === 'object' ? opt : { text: opt });
+    } else if (typeof pollOptions === 'string') {
+      try {
+        pollOptions = JSON.parse(pollOptions);
+      } catch (e) {
+        pollOptions = [];
+      }
+    } else if (!Array.isArray(pollOptions)) {
+      pollOptions = [];
+    }
 
     // Validate text
     const validation = validateConfessionText(text);
@@ -44,14 +65,36 @@ router.post('/', confessionLimiter, async (req, res) => {
       });
     }
 
+    // Mask PII
+    const { maskPII } = require('../utils/moderation');
+    const sanitizedAndMaskedText = maskPII(sanitizeText(text));
+
     // Prepare confession data
     const confessionData = {
-      text: sanitizeText(text),
+      text: sanitizedAndMaskedText,
       category: category || 'other',
       deviceHash,
+      userId: req.user._id, // Store authenticated user
       isPoll: isPoll || false,
       expiresAt: getExpirationDate()
     };
+
+    // Add images if uploaded
+    const uploadedImages = [];
+    if (req.files?.images?.length) {
+      req.files.images.forEach((file) => {
+        uploadedImages.push(`/uploads/confessions/${file.filename}`);
+      });
+    }
+    if (req.files?.image?.length) {
+      req.files.image.forEach((file) => {
+        uploadedImages.push(`/uploads/confessions/${file.filename}`);
+      });
+    }
+    if (uploadedImages.length > 0) {
+      confessionData.images = uploadedImages;
+      confessionData.image = uploadedImages[0];
+    }
 
     // Add poll options if it's a poll
     if (isPoll && pollOptions) {
@@ -75,11 +118,34 @@ router.post('/', confessionLimiter, async (req, res) => {
     const confession = new Confession(confessionData);
     await confession.save();
 
+    // Emit real-time event
+    try {
+      const io = require('../utils/socket').getIO();
+      io.emit('confession:new', {
+        _id: confession._id,
+        text: confession.text,
+        image: confession.image,
+        images: confession.images,
+        category: confession.category,
+        isPoll: confession.isPoll,
+        pollOptions: confession.pollOptions,
+        replyCount: confession.replyCount,
+        likeCount: confession.likeCount,
+        createdAt: confession.createdAt,
+        expiresAt: confession.expiresAt,
+        hoursRemaining: getHoursRemaining(confession.expiresAt)
+      });
+    } catch (ioErr) {
+      console.error('Socket error emitting new confession:', ioErr);
+    }
+
     res.status(201).json({
       success: true,
       confession: {
         _id: confession._id,
         text: confession.text,
+        image: confession.image,
+        images: confession.images,
         category: confession.category,
         isPoll: confession.isPoll,
         pollOptions: confession.pollOptions,
@@ -100,7 +166,29 @@ router.post('/', confessionLimiter, async (req, res) => {
 });
 
 /**
- * GET /api/confessions
+ * POST /api/confessions/validate
+ * Validate confession text for toxicity and PII (Drafting phase)
+ */
+router.post('/validate', protect, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: { message: 'Text is required' } });
+
+    const { analyzeToxicity } = require('../utils/moderation');
+    const result = await analyzeToxicity(text);
+
+    res.json({
+      success: true,
+      isToxic: result.isToxic,
+      score: result.score,
+      method: result.method
+    });
+  } catch (error) {
+    console.error('Validation error:', error);
+    res.status(500).json({ error: { message: 'Validation failed' } });
+  }
+});
+/**
  * Get all confessions (feed)
  */
 router.get('/', async (req, res) => {
@@ -150,7 +238,7 @@ router.get('/', async (req, res) => {
 /**
  * Get single confession with replies
  */
-router.get('/:id', optionalProtect, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const confession = await Confession.findOne({
       _id: req.params.id,
@@ -205,9 +293,10 @@ router.get('/:id', optionalProtect, async (req, res) => {
 /**
  * DELETE /api/confessions/:id
  * Delete a confession (if owner)
+ * @access Private (requires login)
  */
 
-router.delete('/:id', optionalProtect, async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
     const confession = await Confession.findById(req.params.id);
 

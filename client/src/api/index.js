@@ -7,77 +7,97 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true // Enable cookies for authentication
 });
 
 // Confessions API
 export const confessionsAPI = {
-  getAll: (page = 1, limit = 20) => 
+  getAll: (page = 1, limit = 20) =>
     api.get(`/confessions?page=${page}&limit=${limit}`),
-  
-  getById: (id) => 
+
+  getById: (id) =>
     api.get(`/confessions/${id}`),
-  
+
   create: (payload) => {
     if (typeof payload === 'string') {
       return api.post('/confessions', { text: payload });
     }
+    if (payload instanceof FormData) {
+      return api.post('/confessions', payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    }
     return api.post('/confessions', payload);
   },
-  
-  delete: (id) => 
+
+  delete: (id) =>
     api.delete(`/confessions/${id}`),
+
+  validate: (payload) =>
+    api.post('/confessions/validate', payload),
 };
 
 // Replies API
 export const repliesAPI = {
-  create: (confessionId, text, parentReplyId = null) => 
+  create: (confessionId, text, parentReplyId = null) =>
     api.post('/replies', { confessionId, text, parentReplyId }),
-  
-  getByConfessionId: (confessionId) => 
+
+  getByConfessionId: (confessionId) =>
     api.get(`/replies/${confessionId}`),
 };
 
 // User API
 export const userAPI = {
-  getActiveCount: () => 
+  getActiveCount: () =>
     api.get('/user/active-confession-count'),
-  
-  getMyConfessions: () => 
+
+  getMyConfessions: () =>
     api.get('/user/my-confessions'),
+
+  getProfile: () =>
+    api.get('/user/profile'),
+
+  getMyActivity: (type = 'all') =>
+    api.get(`/user/my-activity?type=${type}`),
 };
 
 // Reports API
 export const reportsAPI = {
-  create: (targetType, targetId, reason = 'other', description = '') => 
+  create: (targetType, targetId, reason = 'other', description = '') =>
     api.post('/reports', { targetType, targetId, reason, description }),
 };
 
 // Likes API
 export const likesAPI = {
-  toggle: (confessionId) => 
+  toggle: (confessionId) =>
     api.post(`/likes/${confessionId}`),
-  
-  check: (confessionId) => 
+
+  check: (confessionId) =>
     api.get(`/likes/${confessionId}/status`),
 };
 
 // Explore API
 export const exploreAPI = {
-  search: ({ q = '', category = 'all', sortBy = 'recent', page = 1, limit = 20 }) => 
+  search: ({ q = '', category = 'all', sortBy = 'recent', page = 1, limit = 20 }) =>
     api.get(`/explore/search?q=${encodeURIComponent(q)}&category=${category}&sortBy=${sortBy}&page=${page}&limit=${limit}`),
-  
-  trending: (page = 1, limit = 20) => 
+
+  trending: (page = 1, limit = 20) =>
     api.get(`/explore/trending?page=${page}&limit=${limit}`),
-  
-  confessionOfDay: () => 
+
+  confessionOfDay: () =>
     api.get('/explore/confession-of-the-day'),
-  
-  stats: () => 
+
+  stats: () =>
     api.get('/explore/stats'),
-  
-  category: (category, page = 1, limit = 20) => 
+
+  category: (category, page = 1, limit = 20) =>
     api.get(`/explore/categories/${category}?page=${page}&limit=${limit}`),
+
+  topToday: (type = 'likes', limit = 5) =>
+    api.get(`/explore/top-today?type=${type}&limit=${limit}`),
 };
 
 // Drafts API
@@ -89,10 +109,10 @@ export const draftsAPI = {
 
 // Polls API
 export const pollsAPI = {
-  vote: (confessionId, optionIndex) => 
+  vote: (confessionId, optionIndex) =>
     api.post(`/polls/${confessionId}/vote`, { optionIndex }),
-  
-  results: (confessionId) => 
+
+  results: (confessionId) =>
     api.get(`/polls/${confessionId}/results`),
 };
 

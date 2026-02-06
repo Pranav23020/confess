@@ -1,10 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { reportsAPI } from '../api';
+import { useToast } from '../context/ToastContext';
 
 const ReportScreen = () => {
   const { id, type } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [submitting, setSubmitting] = React.useState(false);
   const [reason, setReason] = React.useState('spam');
   const [description, setDescription] = React.useState('');
@@ -27,9 +29,10 @@ const ReportScreen = () => {
     try {
       setSubmitting(true);
       await reportsAPI.create(type, id, reason, description);
+      showToast('Report submitted successfully');
       navigate(-1);
     } catch (err) {
-      alert(err.response?.data?.error?.message || 'Failed to submit report');
+      showToast(err.response?.data?.error?.message || 'Failed to submit report', 'error');
       setSubmitting(false);
     }
   };
@@ -42,7 +45,7 @@ const ReportScreen = () => {
         <div className="w-full h-64 bg-gray-200 dark:bg-surface-dark rounded-xl"></div>
         <div className="w-full h-40 bg-gray-200 dark:bg-surface-dark rounded-xl"></div>
       </div>
-      
+
       {/* Modal Backdrop */}
       <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         {/* Modal Card */}
@@ -63,7 +66,7 @@ const ReportScreen = () => {
               </p>
             </div>
           </div>
-          
+
           {/* Reason Selection */}
           <div className="px-6 pb-4">
             <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Reason</label>
@@ -72,11 +75,10 @@ const ReportScreen = () => {
                 <button
                   key={r.value}
                   onClick={() => setReason(r.value)}
-                  className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-colors ${
-                    reason === r.value
-                      ? 'bg-primary/10 border-primary text-primary'
-                      : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
-                  }`}
+                  className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-colors ${reason === r.value
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
+                    }`}
                 >
                   {r.label}
                 </button>
@@ -93,14 +95,14 @@ const ReportScreen = () => {
 
           {/* Action Buttons */}
           <div className="p-4 grid grid-cols-2 gap-3">
-            <button 
-              onClick={() => navigate(-1)} 
+            <button
+              onClick={() => navigate(-1)}
               disabled={submitting}
               className="flex w-full cursor-pointer items-center justify-center rounded-xl h-12 px-4 bg-transparent hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 text-base font-bold transition-colors duration-200 disabled:opacity-50"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleReport}
               disabled={submitting}
               className="flex w-full cursor-pointer items-center justify-center rounded-xl h-12 px-4 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-base font-bold transition-colors duration-200 disabled:opacity-50"

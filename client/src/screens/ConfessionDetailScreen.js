@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import ReplyBubble from '../components/ReplyBubble';
 import { confessionsAPI, repliesAPI, likesAPI, pollsAPI } from '../api';
 import ShareTemplateModal from '../components/ShareTemplateModal';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const ConfessionDetailScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [confession, setConfession] = useState(null);
   const [replies, setReplies] = useState([]);
   const [replyText, setReplyText] = useState('');
@@ -22,9 +26,27 @@ const ConfessionDetailScreen = () => {
   const [pollResults, setPollResults] = useState([]);
   const [pollMeta, setPollMeta] = useState({ totalVotes: 0, hasVoted: false, votedOption: null });
   const [pollLoading, setPollLoading] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { showToast } = useToast();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchConfession();
+
+    const handleEngagement = (data) => {
+      if (data.confessionId === id) {
+        setLikeCount(data.likeCount);
+        setConfession(prev => prev ? { ...prev, replyCount: data.replyCount } : prev);
+      }
+    };
+
+    const socket = require('../utils/socket').default;
+    socket.on('confession:engagement', handleEngagement);
+
+    return () => {
+      socket.off('confession:engagement', handleEngagement);
+    };
   }, [id]);
 
   const fetchConfession = async () => {
@@ -34,7 +56,7 @@ const ConfessionDetailScreen = () => {
       setConfession(response.data.confession);
       setReplies(response.data.replies);
       setLikeCount(response.data.confession.likeCount || 0);
-      
+
       // Check if user has liked this confession
       const likeStatus = await likesAPI.check(id);
       setLiked(likeStatus.data.liked);
@@ -42,7 +64,7 @@ const ConfessionDetailScreen = () => {
       if (response.data.confession.isPoll) {
         await fetchPollResults();
       }
-      
+
       setError(null);
     } catch (err) {
       setError('Confession not found or expired');
@@ -80,15 +102,20 @@ const ConfessionDetailScreen = () => {
         votedOption: res.data.votedOption
       });
     } catch (err) {
-      alert('Failed to vote');
+      showToast('Failed to vote', 'error');
     } finally {
       setPollLoading(false);
     }
   };
 
   const handleLike = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (liking) return;
-    
+
     try {
       setLiking(true);
       const response = await likesAPI.toggle(id);
@@ -96,12 +123,20 @@ const ConfessionDetailScreen = () => {
       setLikeCount(response.data.likeCount);
     } catch (err) {
       console.error('Failed to toggle like:', err);
+      if (err.response?.status === 401) {
+        navigate('/login');
+      }
     } finally {
       setLiking(false);
     }
   };
 
   const handlePostReply = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (replyText.trim().length < 1) return;
 
     try {
@@ -111,22 +146,26 @@ const ConfessionDetailScreen = () => {
       setReplyTo(null);
       fetchConfession(); // Refresh to get new reply
     } catch (err) {
-      alert(err.response?.data?.error?.message || 'Failed to post reply');
+      if (err.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
+      showToast(err.response?.data?.error?.message || 'Failed to post reply', 'error');
     } finally {
       setPosting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this confession?')) {
-      try {
-        setLoading(true); // Show loading state
-        await confessionsAPI.delete(id);
-        navigate('/');
-      } catch (err) {
-        alert(err.response?.data?.error?.message || 'Failed to delete confession');
-        setLoading(false);
-      }
+    try {
+      setLoading(true);
+      await confessionsAPI.delete(id);
+      showToast('Whisper deleted successfully');
+      navigate('/');
+    } catch (err) {
+      showToast(err.response?.data?.error?.message || 'Failed to delete confession', 'error');
+      setLoading(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -137,6 +176,48 @@ const ConfessionDetailScreen = () => {
     if (h < 12) return 'text-primary';
     return 'text-blue-400';
   };
+
+  const getImageUrl = (image) => {
+    if (!image) return '';
+    if (image.startsWith('http')) return image;
+    const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const baseClean = base.replace(/\/$/, '').replace(/\/api$/, '');
+    const path = image.startsWith('/') ? image : `/${image}`;
+    return `${baseClean}${path}`;
+  };
+
+  const images = confession?.images?.length
+    ? confession.images
+    : (confession?.image ? [confession.image] : []);
+
+  const openImageModal = (index = 0) => {
+    if (!images.length) return;
+    setCurrentImageIndex(index);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+  };
+
+  const goPrev = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const goNext = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  useEffect(() => {
+    if (!showImageModal) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeImageModal();
+      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') goNext();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showImageModal]);
 
   const buildReplyTree = (list) => {
     const map = {};
@@ -211,7 +292,7 @@ const ConfessionDetailScreen = () => {
           <div className="flex items-center gap-2">
             {confession?.isOwner && (
               <button
-                onClick={handleDelete}
+                onClick={() => setShowDeleteModal(true)}
                 className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-red-500"
                 title="Delete Confession"
               >
@@ -240,6 +321,25 @@ const ConfessionDetailScreen = () => {
               <p className="text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-6">
                 {confession.text}
               </p>
+              {images.length > 0 && (
+                <div className="mb-6">
+                  <div className="relative group cursor-pointer" onClick={() => openImageModal(0)}>
+                    <img
+                      src={getImageUrl(images[0])}
+                      alt="Confession"
+                      className="w-full rounded-xl object-cover max-h-96 border border-slate-200 dark:border-white/10"
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                      <span className="px-3 py-1.5 text-xs font-semibold text-white bg-black/40 rounded-full">View photo</span>
+                    </div>
+                    {images.length > 1 && (
+                      <div className="absolute bottom-3 right-3 px-2 py-1 text-xs font-semibold text-white bg-black/40 rounded-full">
+                        1 / {images.length}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               {confession.isPoll && (
                 <div className="space-y-3 mb-6">
                   {pollLoading && pollResults.length === 0 ? (
@@ -250,11 +350,10 @@ const ConfessionDetailScreen = () => {
                         key={idx}
                         onClick={() => handleVote(idx)}
                         disabled={pollLoading}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
-                          pollMeta.votedOption === idx
-                            ? 'border-primary bg-primary/10'
-                            : 'border-slate-200 dark:border-white/10'
-                        }`}
+                        className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${pollMeta.votedOption === idx
+                          ? 'border-primary bg-primary/10'
+                          : 'border-slate-200 dark:border-white/10'
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold">{opt.text}</span>
@@ -271,12 +370,11 @@ const ConfessionDetailScreen = () => {
               )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-3">
-                  <button 
+                  <button
                     onClick={handleLike}
                     disabled={liking}
-                    className={`transition-colors flex items-center gap-1 text-sm font-semibold ${
-                      liked ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-500'
-                    }`}
+                    className={`transition-colors flex items-center gap-1 text-sm font-semibold ${liked ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-500'
+                      }`}
                   >
                     <span className={`material-symbols-outlined text-[20px] ${liked ? 'filled' : ''}`}>favorite</span>
                     {likeCount || 0}
@@ -285,7 +383,7 @@ const ConfessionDetailScreen = () => {
                     <span className="material-symbols-outlined text-[20px]">chat_bubble</span>
                     {confession.replyCount || 0}
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowShareModal(true)}
                     className="text-slate-400 hover:text-purple-500 transition-colors flex items-center gap-1 text-sm font-semibold"
                   >
@@ -336,32 +434,90 @@ const ConfessionDetailScreen = () => {
             </div>
           )}
           <div className="flex gap-2 md:gap-3">
-          <input
-            type="text"
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handlePostReply()}
-            placeholder="Write a reply..."
-            maxLength={300}
-            className="flex-1 px-4 md:px-5 py-3 md:py-4 text-base md:text-lg bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
-          />
-          <button
-            onClick={handlePostReply}
-            disabled={posting || replyText.trim().length < 1}
-            className="px-6 md:px-8 py-3 md:py-4 bg-primary text-white rounded-xl text-base md:text-lg font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {posting ? '...' : 'Send'}
-          </button>
+            <input
+              type="text"
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handlePostReply()}
+              placeholder="Write a reply..."
+              maxLength={300}
+              className="flex-1 px-4 md:px-5 py-3 md:py-4 text-base md:text-lg bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
+            />
+            <button
+              onClick={handlePostReply}
+              disabled={posting || replyText.trim().length < 1}
+              className="px-6 md:px-8 py-3 md:py-4 bg-primary text-white rounded-xl text-base md:text-lg font-semibold hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {posting ? '...' : 'Send'}
+            </button>
           </div>
         </div>
       </div>
 
       <BottomNav active="home" />
-      
-      <ShareTemplateModal 
+
+      {showImageModal && images.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closeImageModal}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              closeImageModal();
+            }}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <span className="material-symbols-outlined text-2xl">close</span>
+          </button>
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+              }}
+              className="absolute left-4 md:left-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            >
+              <span className="material-symbols-outlined text-2xl">chevron_left</span>
+            </button>
+          )}
+          <img
+            src={getImageUrl(images[currentImageIndex])}
+            alt="Confession full view"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+              }}
+              className="absolute right-4 md:right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            >
+              <span className="material-symbols-outlined text-2xl">chevron_right</span>
+            </button>
+          )}
+          {images.length > 1 && (
+            <div className="absolute bottom-6 text-xs text-white/80">
+              {currentImageIndex + 1} / {images.length}
+            </div>
+          )}
+        </div>
+      )}
+
+      <ShareTemplateModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         confessionText={confession.text}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Whisper?"
+        message="This will permanently remove your whisper. This action cannot be undone."
       />
     </div>
   );

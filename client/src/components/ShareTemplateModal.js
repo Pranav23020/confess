@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useToast } from '../context/ToastContext';
 import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, shareTemplate } from '../utils/templateGenerator';
 
 const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
+  const { showToast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATE_TYPES.GRADIENT);
   const [preview, setPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && confessionText) {
-      generatePreview(selectedTemplate);
-    }
-  }, [isOpen, selectedTemplate, confessionText]);
-
-  const generatePreview = async (templateType) => {
+  const generatePreview = useCallback(async (templateType) => {
     setIsGenerating(true);
     try {
       const previewUrl = await getTemplatePreview(confessionText, templateType);
@@ -23,7 +19,13 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [confessionText]);
+
+  useEffect(() => {
+    if (isOpen && confessionText) {
+      generatePreview(selectedTemplate);
+    }
+  }, [isOpen, selectedTemplate, confessionText, generatePreview]);
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -31,13 +33,13 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
       const result = await shareTemplate(confessionText, selectedTemplate);
       if (result.success) {
         if (result.downloaded) {
-          alert('Image downloaded! You can now share it on your stories.');
+          showToast('Image downloaded! You can now share it on your stories.');
         }
         onClose();
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      alert('Failed to share. Please try again.');
+      showToast('Failed to share. Please try again.', 'error');
     } finally {
       setIsSharing(false);
     }
@@ -51,7 +53,7 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="text-xl font-bold text-gray-900">Share as Story</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
           >
@@ -68,11 +70,10 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
                 <button
                   key={key}
                   onClick={() => setSelectedTemplate(key)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    selectedTemplate === key
+                  className={`p-4 rounded-xl border-2 transition-all ${selectedTemplate === key
                       ? 'border-purple-600 bg-purple-50'
                       : 'border-gray-200 hover:border-purple-300'
-                  }`}
+                    }`}
                 >
                   <div className="text-3xl mb-2">{template.icon}</div>
                   <div className="text-sm font-semibold text-gray-900">{template.name}</div>
@@ -91,9 +92,9 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
                   <p className="text-gray-600">Generating preview...</p>
                 </div>
               ) : preview ? (
-                <img 
-                  src={preview} 
-                  alt="Template Preview" 
+                <img
+                  src={preview}
+                  alt="Template Preview"
                   className="max-w-full h-auto rounded-lg shadow-lg"
                   style={{ maxHeight: '500px' }}
                 />

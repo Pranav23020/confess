@@ -10,27 +10,30 @@ import ReportScreen from './screens/ReportScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import DesktopNav from './components/DesktopNav';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden min-h-screen relative">
-          <DesktopNav />
-          <Routes>
-            <Route path="/" element={<HomeScreen />} />
-            <Route path="/login" element={<LoginScreen />} />
-            <Route path="/register" element={<RegisterScreen />} />
-            <Route path="/new" element={<NewConfessionScreen />} />
-            <Route path="/confession/:id" element={<ConfessionDetailScreen />} />
-            <Route path="/explore" element={<ExploreScreen />} />
-            <Route path="/profile" element={<ProfileScreen />} />
-            <Route path="/limit-reached" element={<LimitReachedScreen />} />
-            <Route path="/report/:id/:type" element={<ReportScreen />} />
-          </Routes>
-        </div>
-      </Router>
+      <ToastProvider>
+        <Router>
+          <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden min-h-screen relative">
+            <DesktopNav />
+            <Routes>
+              <Route path="/" element={<HomeScreen />} />
+              <Route path="/login" element={<LoginScreen />} />
+              <Route path="/register" element={<RegisterScreen />} />
+              <Route path="/new" element={<NewConfessionScreen />} />
+              <Route path="/confession/:id" element={<ConfessionDetailScreen />} />
+              <Route path="/explore" element={<ExploreScreen />} />
+              <Route path="/profile" element={<ProfileScreen />} />
+              <Route path="/limit-reached" element={<LimitReachedScreen />} />
+              <Route path="/report/:id/:type" element={<ReportScreen />} />
+            </Routes>
+          </div>
+        </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }
