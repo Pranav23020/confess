@@ -1,12 +1,24 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import api from '../api';
 
 export const AuthContext = createContext();
+
+// Keep-alive function to prevent Render cold starts
+const startKeepAlive = () => {
+    const keepAliveInterval = setInterval(() => {
+        api.get('/health')
+            .then(() => console.log('✅ Keep-alive ping sent'))
+            .catch(() => console.log('Keep-alive ping skipped (offline)'));
+    }, 5 * 60 * 1000); // Every 5 minutes
+
+    return keepAliveInterval;
+};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const keepAliveRef = useRef(null);
 
     // Load user on mount and detect OAuth redirect
     useEffect(() => {
@@ -17,6 +29,15 @@ export const AuthProvider = ({ children }) => {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
         fetchUser();
+
+        // Start keep-alive to prevent Render from sleeping
+        keepAliveRef.current = startKeepAlive();
+
+        return () => {
+            if (keepAliveRef.current) {
+                clearInterval(keepAliveRef.current);
+            }
+        };
     }, []);
 
     const fetchUser = async () => {
