@@ -5,19 +5,38 @@ const nodemailer = require('nodemailer');
  * Production-ready email service for password reset
  */
 const createTransporter = () => {
-    return nodemailer.createTransport({
+    const emailUser = process.env.EMAIL_USER || 'noreply@anonconfess.in';
+    const emailPassword = process.env.EMAIL_PASSWORD;
+
+    console.log('📧 Email Service Configuration:');
+    console.log(`   EMAIL_USER: ${emailUser}`);
+    console.log(`   EMAIL_PASSWORD: ${emailPassword ? '✅ Set' : '❌ NOT SET'}`);
+    console.log(`   Password length: ${emailPassword ? emailPassword.length : 0} chars`);
+    console.log(`   SMTP Host: smtppro.zoho.in:465 (SSL)`);
+
+    if (!emailPassword) {
+        console.error('❌ EMAIL_PASSWORD environment variable is not set!');
+    }
+
+    const config = {
         host: 'smtppro.zoho.in',
         port: 465,
         secure: true, // SSL
         auth: {
-            user: process.env.EMAIL_USER || 'noreply@anonconfess.in',
-            pass: process.env.EMAIL_PASSWORD // Zoho App Password
+            user: emailUser,
+            pass: emailPassword
         },
         // Connection timeout settings for production
         connectionTimeout: 10000,
         greetingTimeout: 10000,
-        socketTimeout: 10000
-    });
+        socketTimeout: 10000,
+        // Debug logging
+        logger: true,
+        debug: true
+    };
+
+    console.log('🔗 Creating Nodemailer transporter with SSL...');
+    return nodemailer.createTransport(config);
 };
 
 /**
@@ -30,6 +49,8 @@ const createTransporter = () => {
  */
 const sendPasswordResetEmail = async ({ email, resetUrl, username }) => {
     try {
+        console.log(`\n📧 Sending password reset email to: ${email}`);
+        
         const transporter = createTransporter();
 
         const mailOptions = {
@@ -40,11 +61,28 @@ const sendPasswordResetEmail = async ({ email, resetUrl, username }) => {
             text: generateResetEmailText({ resetUrl, username })
         };
 
+        console.log('   Connecting to Zoho SMTP...');
+        const startTime = Date.now();
+        
         const info = await transporter.sendMail(mailOptions);
-        console.log('Password reset email sent:', info.messageId);
+        
+        const duration = Date.now() - startTime;
+        console.log(`✅ Password reset email sent successfully!`);
+        console.log(`   Message ID: ${info.messageId}`);
+        console.log(`   Time: ${duration}ms`);
+        console.log(`   To: ${email}`);
+        
         return true;
     } catch (error) {
-        console.error('Error sending password reset email:', error);
+        console.error(`\n❌ Failed to send password reset email to ${email}`);
+        console.error(`   Error: ${error.message}`);
+        console.error(`   Code: ${error.code}`);
+        
+        // Log full error for debugging
+        if (process.env.NODE_ENV === 'development') {
+            console.error('   Full error:', error);
+        }
+        
         // Don't throw - we'll return false to indicate failure
         return false;
     }
@@ -183,13 +221,82 @@ This is an automated email. Please do not reply.
  * Should be called on server startup
  */
 const verifyEmailService = async () => {
+    console.log('\n🔍 VERIFYING EMAIL SERVICE...');
+    console.log('═══════════════════════════════════════════════════════════════');
+
     try {
+        // Check environment variables
+        const emailUser = process.env.EMAIL_USER;
+        const emailPassword = process.env.EMAIL_PASSWORD;
+        const frontendUrl = process.env.FRONTEND_URL;
+
+        console.log('\n📋 Environment Variable Check:');
+        console.log(`   EMAIL_USER: ${emailUser ? `✅ ${emailUser}` : '❌ NOT SET'}`);
+        console.log(`   EMAIL_PASSWORD: ${emailPassword ? `✅ Set (${emailPassword.length} chars)` : '❌ NOT SET'}`);
+        console.log(`   FRONTEND_URL: ${frontendUrl ? `✅ ${frontendUrl}` : '⚠️  Using default'}`);
+
+        if (!emailUser || !emailPassword) {
+            console.error('\n❌ Missing EMAIL_USER or EMAIL_PASSWORD!');
+            console.error('   Please set these environment variables:');
+            console.error('   - EMAIL_USER=noreply@anonconfess.in');
+            console.error('   - EMAIL_PASSWORD=your_zoho_app_password');
+            return false;
+        }
+
+        console.log('\n🔗 Attempting SMTP Connection to Zoho...');
+        console.log('   Host: smtppro.zoho.in');
+        console.log('   Port: 465 (SSL)');
+        console.log('   Timeout: 10 seconds');
+
         const transporter = createTransporter();
+
+        console.log('\n✔️  Verifying SMTP connection...');
+        const startTime = Date.now();
+        
         await transporter.verify();
-        console.log('✅ Zoho email service is ready');
+        
+        const duration = Date.now() - startTime;
+        console.log(`\n✅ ZOHO SMTP CONNECTION SUCCESSFUL!`);
+        console.log(`   ⏱️  Connection time: ${duration}ms`);
+        console.log(`   📧 Email: ${emailUser}`);
+        console.log(`   🔐 Ready to send password reset emails`);
+        console.log('═══════════════════════════════════════════════════════════════\n');
+        
         return true;
     } catch (error) {
-        console.error('❌ Email service verification failed:', error.message);
+        const duration = Date.now() - (Date.now() - 10000); // Approximate
+        
+        console.error('\n❌ EMAIL SERVICE VERIFICATION FAILED');
+        console.error('═══════════════════════════════════════════════════════════════');
+        console.error(`   Error Type: ${error.name}`);
+        console.error(`   Error Message: ${error.message}`);
+        console.error(`   Error Code: ${error.code || 'N/A'}`);
+        
+        if (error.message.includes('timeout')) {
+            console.error('\n🔍 DIAGNOSIS: Connection Timeout');
+            console.error('   Possible causes:');
+            console.error('   1. ❌ EMAIL_PASSWORD is incorrect or incomplete');
+            console.error('   2. ❌ Zoho servers are unreachable from this network');
+            console.error('   3. ⚠️  Firewall is blocking port 465');
+            console.error('   4. ⚠️  Network connectivity issue');
+            console.error('\n   Solutions:');
+            console.error('   - Verify EMAIL_PASSWORD is the complete Zoho App Password');
+            console.error('   - Try regenerating a new Zoho App Password');
+            console.error('   - Check if port 465 (SSL SMTP) is accessible');
+        } else if (error.message.includes('Invalid login')) {
+            console.error('\n🔍 DIAGNOSIS: Authentication Failed');
+            console.error('   Possible causes:');
+            console.error('   1. ❌ EMAIL_PASSWORD is wrong');
+            console.error('   2. ❌ EMAIL_USER is incorrect');
+            console.error('\n   Try:');
+            console.error('   - Generate a NEW Zoho App Password');
+            console.error('   - Copy the ENTIRE password (not just part of it)');
+        }
+        
+        console.error('\n📞 Debug Info:');
+        console.error(`   Full Error: ${error.toString()}`);
+        console.error('═══════════════════════════════════════════════════════════════\n');
+        
         return false;
     }
 };
