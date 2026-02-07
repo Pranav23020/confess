@@ -43,7 +43,7 @@ app.use(cookieParser()); // Parse cookies
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim())
-    : ['http://localhost:3000', 'http://localhost:5000'],
+    : ['http://localhost:3000', 'http://localhost:5000', 'https://www.anonconfess.in', 'https://anonconfess.in'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

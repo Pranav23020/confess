@@ -23,7 +23,7 @@ const HashtagInput = ({ value, onChange, onHashtagSelect }) => {
       
       const fetchSuggestions = async () => {
         try {
-          const response = await api.get(`/api/hashtags`, {
+          const response = await api.get('/hashtags', {
             params: { search: searchTerm }
           });
           
