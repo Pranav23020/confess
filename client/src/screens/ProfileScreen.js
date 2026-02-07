@@ -22,6 +22,18 @@ const ProfileScreen = () => {
   const { showToast } = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [confessionToDelete, setConfessionToDelete] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -149,6 +161,15 @@ const ProfileScreen = () => {
     const next = !notifyReplies;
     setNotifyReplies(next);
     localStorage.setItem('notifyReplies', String(next));
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
+    showToast(outcome === 'accepted' ? 'App installed!' : 'Installation cancelled', outcome === 'accepted' ? 'success' : 'info');
   };
 
   if (loading) {
@@ -331,6 +352,52 @@ const ProfileScreen = () => {
                         }`}
                     ></div>
                   </button>
+                </div>
+              </div>
+
+              {/* Install App */}
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
+                <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-3">
+                  Install App
+                </h3>
+                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Get quick access to the app on your home screen
+                </p>
+                <div className="space-y-3">
+                  {showInstallPrompt && deferredPrompt && (
+                    <button
+                      onClick={handleInstallApp}
+                      className="w-full px-4 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">download</span>
+                        Install App Now
+                      </span>
+                    </button>
+                  )}
+                  <details className="cursor-pointer">
+                    <summary className="text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 font-medium">
+                      Manual Installation Instructions
+                    </summary>
+                    <div className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                      <div>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">For iOS:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Tap Share button (arrow pointing up)</li>
+                          <li>Select "Add to Home Screen"</li>
+                          <li>Name the shortcut and tap Add</li>
+                        </ol>
+                      </div>
+                      <div className="mt-3">
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">For Android:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Tap the menu (three dots)</li>
+                          <li>Select "Install app" or "Add to Home Screen"</li>
+                          <li>Confirm the installation</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </div>
 
