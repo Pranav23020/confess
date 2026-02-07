@@ -1,50 +1,15 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-/**
- * Zoho SMTP Configuration
- * Production-ready email service for password reset
- */
-const SMTP_CONFIGS = [
-    { name: 'Zoho Pro TLS 587', host: 'smtppro.zoho.in', port: 587, secure: false, requireTLS: true },
-    { name: 'Zoho TLS 587', host: 'smtp.zoho.in', port: 587, secure: false, requireTLS: true },
-    { name: 'Zoho Pro SSL 465', host: 'smtppro.zoho.in', port: 465, secure: true },
-    { name: 'Zoho SSL 465', host: 'smtp.zoho.in', port: 465, secure: true }
-];
-
-const createTransporter = (smtpConfig = SMTP_CONFIGS[0]) => {
-    const emailUser = process.env.EMAIL_USER || 'noreply@anonconfess.in';
-    const emailPassword = process.env.EMAIL_PASSWORD;
-
-    console.log('📧 Email Service Configuration:');
-    console.log(`   EMAIL_USER: ${emailUser}`);
-    console.log(`   EMAIL_PASSWORD: ${emailPassword ? '✅ Set' : '❌ NOT SET'}`);
-    console.log(`   Password length: ${emailPassword ? emailPassword.length : 0} chars`);
-    console.log(`   SMTP Host: ${smtpConfig.host}:${smtpConfig.port} (${smtpConfig.secure ? 'SSL' : 'TLS'})`);
-
-    if (!emailPassword) {
-        console.error('❌ EMAIL_PASSWORD environment variable is not set!');
+const getResendClient = () => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        throw new Error('RESEND_API_KEY is not set');
     }
+    return new Resend(apiKey);
+};
 
-    const config = {
-        host: smtpConfig.host,
-        port: smtpConfig.port,
-        secure: smtpConfig.secure,
-        requireTLS: smtpConfig.requireTLS || false,
-        auth: {
-            user: emailUser,
-            pass: emailPassword
-        },
-        // Connection timeout settings for production
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000,
-        // Debug logging
-        logger: true,
-        debug: true
-    };
-
-    console.log(`🔗 Creating Nodemailer transporter (${smtpConfig.name})...`);
-    return nodemailer.createTransport(config);
+const getFromAddress = () => {
+    return process.env.RESEND_FROM || process.env.EMAIL_USER || 'noreply@anonconfess.in';
 };
 
 /**
@@ -58,49 +23,42 @@ const createTransporter = (smtpConfig = SMTP_CONFIGS[0]) => {
 const sendPasswordResetEmail = async ({ email, resetUrl, username }) => {
     try {
         console.log(`\n📧 Sending password reset email to: ${email}`);
-        
+
+        const resend = getResendClient();
+        const from = getFromAddress();
+
         const mailOptions = {
-            from: '"AnonConfess" <noreply@anonconfess.in>',
-            to: email,
+            from,
+            to: [email],
             subject: 'Reset your AnonConfess password',
             html: generateResetEmailTemplate({ resetUrl, username }),
             text: generateResetEmailText({ resetUrl, username })
         };
 
-        for (const smtpConfig of SMTP_CONFIGS) {
-            try {
-                console.log(`   Connecting to Zoho SMTP (${smtpConfig.name})...`);
-                const transporter = createTransporter(smtpConfig);
-                const startTime = Date.now();
+        console.log('   Sending email via Resend API (HTTPS)...');
+        const startTime = Date.now();
 
-                const info = await transporter.sendMail(mailOptions);
-
-                const duration = Date.now() - startTime;
-                console.log(`✅ Password reset email sent successfully!`);
-                console.log(`   Message ID: ${info.messageId}`);
-                console.log(`   Time: ${duration}ms`);
-                console.log(`   To: ${email}`);
-                console.log(`   SMTP Used: ${smtpConfig.name}`);
-
-                return true;
-            } catch (error) {
-                console.warn(`   ⚠️  Send failed on ${smtpConfig.name}: ${error.message}`);
-            }
+        const { data, error } = await resend.emails.send(mailOptions);
+        if (error) {
+            throw new Error(error.message || 'Resend API error');
         }
 
-        console.error('❌ All SMTP configurations failed to send email.');
-        return false;
+        const duration = Date.now() - startTime;
+        console.log('✅ Password reset email sent successfully!');
+        console.log(`   Message ID: ${data?.id || 'unknown'}`);
+        console.log(`   Time: ${duration}ms`);
+        console.log(`   To: ${email}`);
+        console.log(`   From: ${from}`);
+
+        return true;
     } catch (error) {
         console.error(`\n❌ Failed to send password reset email to ${email}`);
         console.error(`   Error: ${error.message}`);
-        console.error(`   Code: ${error.code}`);
-        
-        // Log full error for debugging
+
         if (process.env.NODE_ENV === 'development') {
             console.error('   Full error:', error);
         }
-        
-        // Don't throw - we'll return false to indicate failure
+
         return false;
     }
 };
@@ -239,268 +197,41 @@ This is an automated email. Please do not reply.
  */
 const verifyEmailService = async () => {
     console.log('\n╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║          🔍 COMPREHENSIVE EMAIL SERVICE DIAGNOSTICS           ║');
+    console.log('║                🔍 RESEND EMAIL SERVICE CHECK                 ║');
     console.log('╚═══════════════════════════════════════════════════════════════╝\n');
 
-    try {
-        // ========== ENVIRONMENT CHECK ==========
-        console.log('📋 STEP 1: Environment Variables Check');
-        console.log('─────────────────────────────────────────────────────────────');
-        
-        const emailUser = process.env.EMAIL_USER;
-        const emailPassword = process.env.EMAIL_PASSWORD;
-        const frontendUrl = process.env.FRONTEND_URL;
-        const nodeEnv = process.env.NODE_ENV;
-        
-        console.log(`   EMAIL_USER:    ${emailUser ? `✅ ${emailUser}` : '❌ NOT SET'}`);
-        console.log(`   EMAIL_PASSWORD: ${emailPassword ? `✅ Set (${emailPassword.length} chars)` : '❌ NOT SET'}`);
-        console.log(`   FRONTEND_URL:  ${frontendUrl ? `✅ ${frontendUrl}` : '⚠️  NOT SET (using default)'}`);
-        console.log(`   NODE_ENV:      ${nodeEnv ? `✅ ${nodeEnv}` : '⚠️  development'}`);
+    const apiKey = process.env.RESEND_API_KEY;
+    const fromAddress = getFromAddress();
 
-        if (!emailUser || !emailPassword) {
-            console.error('\n❌ FATAL: Missing EMAIL_USER or EMAIL_PASSWORD!\n');
-            return false;
-        }
+    console.log('📋 STEP 1: Environment Variables Check');
+    console.log('─────────────────────────────────────────────────────────────');
+    console.log(`   RESEND_API_KEY: ${apiKey ? '✅ Set' : '❌ NOT SET'}`);
+    console.log(`   RESEND_FROM:    ${process.env.RESEND_FROM ? `✅ ${process.env.RESEND_FROM}` : '⚠️  NOT SET (using fallback)'}`);
+    console.log(`   EMAIL_USER:     ${process.env.EMAIL_USER ? `✅ ${process.env.EMAIL_USER}` : '⚠️  NOT SET'}`);
+    console.log(`   FRONTEND_URL:   ${process.env.FRONTEND_URL ? `✅ ${process.env.FRONTEND_URL}` : '⚠️  NOT SET'}`);
 
-        // ========== CONFIGURATION VALIDATION ==========
-        console.log('\n✔️ STEP 2: Configuration Validation');
-        console.log('─────────────────────────────────────────────────────────────');
-        
-        const passwordLength = emailPassword.length;
-        const hasSpaces = emailPassword.includes(' ');
-        
-        console.log(`   Password Length: ${passwordLength} chars`);
-        if (passwordLength < 20) {
-            console.warn(`   ⚠️  WARNING: Password seems short (${passwordLength} chars)`);
-            console.warn(`       Zoho App Passwords are typically 30-50+ characters`);
-            console.warn(`       Check if you copied the COMPLETE password from Zoho`);
-        } else {
-            console.log(`   ✅ Password length looks good`);
-        }
-        
-        console.log(`   Contains Spaces: ${hasSpaces ? '❌ YES (remove them!)' : '✅ NO (correct)'}`);
-        if (hasSpaces) {
-            console.warn(`   ⚠️  PASSWORD CONTAINS SPACES - This will fail!`);
-            console.warn(`       Paste without spaces: ${emailPassword.replace(/ /g, '')}`);
-        }
-
-        // ========== SMTP CONFIGURATION ==========
-        console.log('\n🔗 STEP 3: SMTP Configuration');
-        console.log('─────────────────────────────────────────────────────────────');
-        console.log(`   Primary Target:   ${SMTP_CONFIGS[0].name}`);
-        console.log(`   Host:             ${SMTP_CONFIGS[0].host}`);
-        console.log(`   Port:             ${SMTP_CONFIGS[0].port}`);
-        console.log(`   Encryption:       ${SMTP_CONFIGS[0].secure ? 'SSL' : 'TLS'}`);
-        console.log(`   Authentication:   Enabled`);
-        console.log(`   Fallbacks:        ${SMTP_CONFIGS.slice(1).map((cfg) => cfg.name).join(', ')}`);
-
-        // ========== FRONTEND SETUP CHECK ==========
-        console.log('\n🌐 STEP 4: Frontend Setup Check');
-        console.log('─────────────────────────────────────────────────────────────');
-        
-        if (!frontendUrl) {
-            console.warn(`   ⚠️  FRONTEND_URL not set`);
-            console.warn(`       Password reset emails will use default URL`);
-            console.warn(`       Set FRONTEND_URL to your actual domain`);
-        } else {
-            const urlObj = new URL(frontendUrl).href;
-            console.log(`   ✅ Frontend URL: ${frontendUrl}`);
-            console.log(`   ✅ Reset Link Format: ${frontendUrl}/reset-password/:token`);
-            
-            // Check if URL is valid
-            if (!frontendUrl.startsWith('http')) {
-                console.error(`   ❌ INVALID: URL must start with http:// or https://`);
-            }
-            if (frontendUrl.endsWith('/')) {
-                console.warn(`   ⚠️  URL ends with slash - consider removing it`);
-            }
-        }
-
-        // ========== NETWORK CONNECTIVITY ==========
-        console.log('\n📡 STEP 5: Network Connectivity Check');
-        console.log('─────────────────────────────────────────────────────────────');
-        
-        try {
-            const dns = require('dns').promises;
-            console.log(`   Attempting DNS resolution for smtppro.zoho.in...`);
-            const addresses = await dns.resolve4('smtppro.zoho.in');
-            console.log(`   ✅ DNS Resolution: Success`);
-            console.log(`   ✅ Zoho IP Addresses: ${addresses.join(', ')}`);
-            console.log(`   ✅ Network connectivity: OK`);
-        } catch (dnsError) {
-            console.error(`   ❌ DNS Resolution Failed: ${dnsError.message}`);
-            console.error(`   ❌ Cannot reach smtppro.zoho.in`);
-            console.error(`   💡 Possible causes:`);
-            console.error(`      - No internet connection`);
-            console.error(`      - Firewall blocking DNS`);
-            console.error(`      - Zoho server temporarily down`);
-            return false;
-        }
-
-        // ========== NODEMAILER CONNECTION ==========
-        console.log('\n🔌 STEP 6: Nodemailer Connection Test');
-        console.log('─────────────────────────────────────────────────────────────');
-        
-        let lastError = null;
-        for (const smtpConfig of SMTP_CONFIGS) {
-            try {
-                const transporter = createTransporter(smtpConfig);
-                console.log(`   Creating Nodemailer transporter (${smtpConfig.name})...`);
-                console.log(`   Timeout Settings:`);
-                console.log(`      - Connection Timeout: 10 seconds`);
-                console.log(`      - Greeting Timeout: 10 seconds`);
-                console.log(`      - Socket Timeout: 10 seconds`);
-
-                console.log(`\n   Attempting SMTP handshake (${smtpConfig.name})...`);
-                const startTime = Date.now();
-
-                await transporter.verify();
-
-                const duration = Date.now() - startTime;
-                console.log(`\n╔═══════════════════════════════════════════════════════════════╗`);
-                console.log(`║              ✅ EMAIL SERVICE READY - SUCCESS! ✅              ║`);
-                console.log(`╚═══════════════════════════════════════════════════════════════╝`);
-                console.log(`\n   Connection Details:`);
-                console.log(`   ✅ SMTP Server:    ${smtpConfig.host}:${smtpConfig.port}`);
-                console.log(`   ✅ Email Account:  ${emailUser}`);
-                console.log(`   ✅ Connection Time: ${duration}ms`);
-                console.log(`   ✅ Status:         Ready to send emails`);
-                console.log(`   ✅ Frontend URL:   ${frontendUrl || 'default'}`);
-                console.log(`   ✅ SMTP Profile:   ${smtpConfig.name}`);
-                console.log(`\n   Password reset emails will be sent to users at:`);
-                console.log(`   📧 From: AnonConfess <${emailUser}>`);
-                console.log(`   🔗 Reset Link: ${frontendUrl || 'https://anonconfess.in'}/reset-password/:token\n`);
-
-                return true;
-            } catch (error) {
-                lastError = error;
-                console.warn(`   ⚠️  SMTP verify failed on ${smtpConfig.name}: ${error.message}`);
-            }
-        }
-
-        if (lastError) {
-            throw lastError;
-        }
-
-        throw new Error('All SMTP configurations failed.');
-    } catch (error) {
-        const startTime = Date.now();
-        
-        console.error(`\n╔═══════════════════════════════════════════════════════════════╗`);
-        console.error(`║            ❌ EMAIL SERVICE VERIFICATION FAILED ❌             ║`);
-        console.error(`╚═══════════════════════════════════════════════════════════════╝\n`);
-        
-        console.error(`   Error Type:    ${error.name}`);
-        console.error(`   Error Message: ${error.message}`);
-        console.error(`   Error Code:    ${error.code || 'N/A'}`);
-
-        // ========== DETAILED DIAGNOSTICS ==========
-        console.error(`\n🔍 STEP 7: Detailed Diagnostics`);
-        console.error(`─────────────────────────────────────────────────────────────`);
-
-        if (error.message.includes('timeout') || error.code === 'ETIMEDOUT') {
-            console.error(`\n⏱️  ISSUE: Connection Timeout (took 10+ seconds)`);
-            console.error(`\n💡 DIAGNOSIS - Possible causes:`);
-            console.error(`\n   1️⃣  PASSWORD ISSUE (Most Common)`);
-            console.error(`       ❌ EMAIL_PASSWORD might be:`);
-            console.error(`          - Incomplete or truncated`);
-            console.error(`          - Contains spaces (should not)`);
-            console.error(`          - Wrong account password (not App Password)`);
-            console.error(`       ✅ Solution:`);
-            console.error(`          - Go to https://accounts.zoho.in/home#security/security`);
-            console.error(`          - Find "App-Specific Passwords"`);
-            console.error(`          - Generate a NEW one for "AnonConfess Backend"`);
-            console.error(`          - Copy the ENTIRE password (no spaces)`);
-            console.error(`          - Paste in Render without any spaces`);
-
-            console.error(`\n   2️⃣  NETWORK/FIREWALL ISSUE`);
-            console.error(`       ❌ Render might be blocked:`);
-            console.error(`          - Port 587 blocked by firewall`);
-            console.error(`          - Render IP whitelisted in Zoho`);
-            console.error(`          - ISP blocking SMTP`);
-            console.error(`       ✅ Solution:`);
-            console.error(`          - Check Zoho allows SMTP access`);
-            console.error(`          - Verify no IP restrictions on Zoho account`);
-            console.error(`          - Try contacting Zoho support`);
-
-            console.error(`\n   3️⃣  ZOHO SERVER ISSUE`);
-            console.error(`       ❌ Zoho servers might be:`);
-            console.error(`          - Temporarily down`);
-            console.error(`          - Experiencing issues`);
-            console.error(`          - Under maintenance`);
-            console.error(`       ✅ Solution:`);
-            console.error(`          - Wait a few minutes and redeploy`);
-            console.error(`          - Check Zoho status page`);
-
-            console.error(`\n   4️⃣  RENDER DEPLOYMENT ISSUE`);
-            console.error(`       ❌ Environment might not be synced`);
-            console.error(`       ✅ Solution:`);
-            console.error(`          - Verify EMAIL_PASSWORD is correct in Render`);
-            console.error(`          - Redeploy the service`);
-            console.error(`          - Check environment variables were saved`);
-        } else if (error.message.includes('Invalid login') || error.message.includes('Authentication')) {
-            console.error(`\n🔐 ISSUE: Authentication Failed`);
-            console.error(`\n💡 DIAGNOSIS:`);
-            console.error(`   ❌ Email credentials are WRONG`);
-            console.error(`   ✅ Solution:`);
-            console.error(`      - EMAIL_USER: noreply@anonconfess.in (correct?)`);
-            console.error(`      - EMAIL_PASSWORD: Generate NEW one from Zoho`);
-            console.error(`      - Make sure it's App Password, not regular password`);
-            console.error(`      - Copy ENTIRE password without spaces`);
-        } else if (error.message.includes('ENOTFOUND')) {
-            console.error(`\n🌐 ISSUE: DNS Resolution Failed`);
-            console.error(`\n💡 DIAGNOSIS:`);
-            console.error(`   ❌ Cannot resolve smtppro.zoho.in`);
-            console.error(`   ❌ No internet connection or DNS issue`);
-            console.error(`   ✅ Solution:`);
-            console.error(`      - Check Render has internet access`);
-            console.error(`      - Try redeploy`);
-            console.error(`      - Contact Render support if persists`);
-        } else if (error.message.includes('ECONNREFUSED')) {
-            console.error(`\n🔌 ISSUE: Connection Refused`);
-            console.error(`\n💡 DIAGNOSIS:`);
-            console.error(`   ❌ Zoho SMTP server refused connection`);
-            console.error(`   ❌ Port 465 might not be accessible`);
-            console.error(`   ✅ Solution:`);
-            console.error(`      - Verify SMTP access enabled on Zoho account`);
-            console.error(`      - Check port 587 is correct (not 465 or 25)`);
-            console.error(`      - Contact Zoho support`);
-        }
-
-        // ========== ENVIRONMENT VARIABLE CHECK ==========
-        console.error(`\n⚙️  STEP 8: Environment Variables in Use`);
-        console.error(`─────────────────────────────────────────────────────────────`);
-        console.error(`   EMAIL_USER:    ${process.env.EMAIL_USER || '❌ NOT SET'}`);
-        console.error(`   EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? `✅ Set (${process.env.EMAIL_PASSWORD.length} chars)` : '❌ NOT SET'}`);
-        console.error(`   FRONTEND_URL:  ${process.env.FRONTEND_URL || '⚠️  NOT SET'}`);
-        console.error(`   NODE_ENV:      ${process.env.NODE_ENV || 'development'}`);
-
-        // ========== VERCEL/FRONTEND CHECK ==========
-        console.error(`\n🌐 STEP 9: Vercel/Frontend Configuration Check`);
-        console.error(`─────────────────────────────────────────────────────────────`);
-        const frontendUrl = process.env.FRONTEND_URL;
-        if (!frontendUrl) {
-            console.error(`   ⚠️  FRONTEND_URL is not set`);
-            console.error(`       Password reset links will not work properly`);
-        } else {
-            try {
-                new URL(frontendUrl);
-                console.error(`   ✅ FRONTEND_URL is valid: ${frontendUrl}`);
-            } catch {
-                console.error(`   ❌ FRONTEND_URL is INVALID format: ${frontendUrl}`);
-                console.error(`       Must be: https://anonconfess.in or https://domain.vercel.app`);
-            }
-        }
-
-        console.error(`\n📞 NEXT STEPS:`);
-        console.error(`   1. Check the diagnostics above for your specific issue`);
-        console.error(`   2. Update the recommended environment variable`);
-        console.error(`   3. Redeploy the service`);
-        console.error(`   4. Check logs again`);
-        console.error(`\n═══════════════════════════════════════════════════════════════\n`);
-        
+    if (!apiKey) {
+        console.error('\n❌ FATAL: Missing RESEND_API_KEY!\n');
         return false;
     }
+
+    const isValidFrom = fromAddress.includes('@');
+    if (!isValidFrom) {
+        console.error(`\n❌ FATAL: Invalid from address: ${fromAddress}`);
+        return false;
+    }
+
+    const fromDomain = fromAddress.split('@')[1];
+
+    console.log('\n✔️ STEP 2: Resend Configuration');
+    console.log('─────────────────────────────────────────────────────────────');
+    console.log('   ✅ Email provider: Resend (HTTPS API)');
+    console.log(`   ✅ From address:   ${fromAddress}`);
+    console.log(`   ✅ From domain:    ${fromDomain}`);
+    console.log('   ✅ SMTP not used (no port blocking)');
+
+    console.log('\n✅ Resend email service is configured.');
+    return true;
 };
 
 module.exports = {
