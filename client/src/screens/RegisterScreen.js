@@ -208,7 +208,9 @@ const RegisterScreen = () => {
                             </>
                         )}
 
-                        {(localError || error) && <p className="text-red-500 text-xs sm:text-sm text-center">{localError || error}</p>}
+                        {(localError || error) && (
+                            <p className="text-red-500 text-xs sm:text-sm text-center">{localError || error}</p>
+                        )}
 
                         <div>
                             <button
