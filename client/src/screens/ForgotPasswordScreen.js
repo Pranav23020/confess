@@ -7,24 +7,18 @@ import { useToast } from '../context/ToastContext';
 const ForgotPasswordScreen = () => {
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
     const { showToast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setMessage('');
-        setError('');
 
         try {
             const { data } = await api.post('/auth/forgot-password', { email });
             const responseMessage = data?.message || 'If an account exists, a reset link has been sent.';
-            setMessage(responseMessage);
             showToast(responseMessage, 'success');
         } catch (err) {
             const errorMessage = err.response?.data?.error || 'Failed to request password reset.';
-            setError(errorMessage);
             showToast(errorMessage, 'error');
         } finally {
             setIsSubmitting(false);
