@@ -67,7 +67,8 @@ const ProfileScreen = () => {
       fetchUserProfile();
       fetchBlockedKeywords();
     }
-  }, [user, loading, navigate, fetchUserProfile, fetchBlockedKeywords]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Only re-fetch when user changes, not on callback changes
 
   const getHoursRemaining = (expiresAt) => {
     const now = new Date();
