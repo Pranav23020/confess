@@ -320,11 +320,12 @@ const ProfileScreen = () => {
             <div className="space-y-6">
               {/* User Settings */}
               <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
-                <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-4">
+                <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white mb-5">
                   Account Settings
                 </h3>
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-5">
+                  {/* Current Username */}
+                  <div className="pb-5 border-b border-slate-200 dark:border-white/5">
                     <label className="block text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
                       Current Username
                     </label>
@@ -332,28 +333,28 @@ const ProfileScreen = () => {
                       {profile?.username}
                     </p>
                   </div>
+
+                  {/* Change Username */}
                   <div>
-                    <details className="cursor-pointer">
-                      <summary className="text-sm text-primary hover:text-primary/80 font-medium transition-colors">
-                        ✎ Change username
-                      </summary>
-                      <div className="mt-3 space-y-3">
-                        <input
-                          type="text"
-                          placeholder="New username"
-                          value={newUsername}
-                          onChange={(e) => setNewUsername(e.target.value)}
-                          className="w-full px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white"
-                        />
-                        <button
-                          onClick={handleUpdateUsername}
-                          disabled={isUpdatingUsername || !newUsername}
-                          className="w-full px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
-                        >
-                          {isUpdatingUsername ? 'Updating...' : 'Update Username'}
-                        </button>
-                      </div>
-                    </details>
+                    <label className="block text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">
+                      Change Username
+                    </label>
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Enter new username (min 3 characters)"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <button
+                        onClick={handleUpdateUsername}
+                        disabled={isUpdatingUsername || !newUsername}
+                        className="w-full px-4 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+                      >
+                        {isUpdatingUsername ? 'Updating...' : 'Update Username'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -419,49 +420,61 @@ const ProfileScreen = () => {
               </div>
 
               {/* Install App */}
-              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
-                <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-3">
+              <div className="bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-2xl p-5 md:p-6 border border-primary/20">
+                <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white mb-2">
                   Install App
                 </h3>
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-5">
                   Get quick access to the app on your home screen
                 </p>
-                <div className="space-y-3">
-                  {showInstallPrompt && deferredPrompt && (
-                    <button
-                      onClick={handleInstallApp}
-                      className="w-full px-4 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]">download</span>
-                        Install App Now
-                      </span>
-                    </button>
-                  )}
-                  <details className="cursor-pointer">
-                    <summary className="text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 font-medium">
+
+                {/* Install Button (shown when available) */}
+                {showInstallPrompt && deferredPrompt && (
+                  <button
+                    onClick={handleInstallApp}
+                    className="w-full px-4 py-3 mb-4 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">download</span>
+                    Install App Now
+                  </button>
+                )}
+
+                {/* Manual Instructions */}
+                <details className="cursor-pointer group">
+                  <summary className="text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors list-none">
+                    <span className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span>
                       Manual Installation Instructions
-                    </summary>
-                    <div className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-400">
-                      <div>
-                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">For iOS:</p>
-                        <ol className="list-decimal list-inside space-y-1 ml-2">
-                          <li>Tap Share button (arrow pointing up)</li>
-                          <li>Select "Add to Home Screen"</li>
-                          <li>Name the shortcut and tap Add</li>
-                        </ol>
-                      </div>
-                      <div className="mt-3">
-                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">For Android:</p>
-                        <ol className="list-decimal list-inside space-y-1 ml-2">
-                          <li>Tap the menu (three dots)</li>
-                          <li>Select "Install app" or "Add to Home Screen"</li>
-                          <li>Confirm the installation</li>
-                        </ol>
-                      </div>
+                    </span>
+                  </summary>
+                  <div className="mt-4 space-y-4 ml-6">
+                    {/* iOS Instructions */}
+                    <div className="pb-4 border-b border-slate-200 dark:border-white/5">
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">phone_iphone</span>
+                        For iOS:
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1.5 text-xs md:text-sm text-slate-600 dark:text-slate-400 ml-3">
+                        <li>Tap the <strong>Share</strong> button (arrow pointing up)</li>
+                        <li>Scroll down and select <strong>"Add to Home Screen"</strong></li>
+                        <li>Name the app and tap <strong>Add</strong></li>
+                      </ol>
                     </div>
-                  </details>
-                </div>
+
+                    {/* Android Instructions */}
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">android</span>
+                        For Android:
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1.5 text-xs md:text-sm text-slate-600 dark:text-slate-400 ml-3">
+                        <li>Tap the <strong>Menu</strong> button (three dots)</li>
+                        <li>Select <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong></li>
+                        <li>Confirm the installation</li>
+                      </ol>
+                    </div>
+                  </div>
+                </details>
               </div>
 
               {/* Info Section */}
