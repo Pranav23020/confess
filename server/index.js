@@ -39,14 +39,6 @@ app.use(helmet({
 app.use(compression());
 app.use(cookieParser()); // Parse cookies
 
-// Request logging middleware for debugging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log('Origin:', req.headers.origin);
-  console.log('Cookies:', req.cookies ? Object.keys(req.cookies) : 'none');
-  next();
-});
-
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim())
@@ -55,42 +47,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// Log CORS headers being sent
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  console.log('CORS - Allowing origin:', origin);
-  next();
-});
-
-// Log all responses with status and CORS headers
-app.use((req, res, next) => {
-  const originalJson = res.json;
-  const originalSend = res.send;
-  const originalStatus = res.status;
-  
-  res.status = function(code) {
-    res.statusCode = code;
-    return originalStatus.call(this, code);
-  };
-  
-  res.json = function(data) {
-    console.log(`[RESPONSE] ${req.method} ${req.path} -> ${res.statusCode}`);
-    console.log(`[RESPONSE] CORS header: ${res.get('Access-Control-Allow-Origin') || 'NOT SET'}`);
-    if (res.statusCode >= 400) {
-      console.log(`[RESPONSE] Error data:`, JSON.stringify(data).substring(0, 100));
-    }
-    return originalJson.call(this, data);
-  };
-  
-  res.send = function(data) {
-    console.log(`[RESPONSE] ${req.method} ${req.path} -> ${res.statusCode}`);
-    console.log(`[RESPONSE] CORS header: ${res.get('Access-Control-Allow-Origin') || 'NOT SET'}`);
-    return originalSend.call(this, data);
-  };
-  
-  next();
-});
 
 app.use(express.json({ limit: '10kb' }));
 
