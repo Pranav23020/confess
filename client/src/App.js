@@ -34,8 +34,6 @@ function App() {
               <Route path="/profile" element={<ProfileScreen />} />
               <Route path="/limit-reached" element={<LimitReachedScreen />} />
               <Route path="/report/:id/:type" element={<ReportScreen />} />
-              <Route path="/privacy" element={<PrivacyPolicyScreen />} />
-              <Route path="/terms" element={<TermsOfServiceScreen />} />
             </Routes>
           </div>
         </Router>

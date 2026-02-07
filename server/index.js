@@ -9,6 +9,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const redis = require('./utils/redis');
 const { isRedisConnected, healthCheck: redisHealthCheck, closeRedis } = require('./utils/redis');
+const { verifyEmailService } = require('./utils/emailService');
 
 const confessionRoutes = require('./routes/confessions');
 const replyRoutes = require('./routes/replies');
@@ -191,6 +192,11 @@ server.listen(PORT, () => {
       console.warn('⚠️  Redis not connected - using fallback mechanisms');
     }
   }, 1000);
+  
+  // Verify email service configuration
+  setTimeout(async () => {
+    await verifyEmailService();
+  }, 1500);
 });
 
 // Graceful shutdown
