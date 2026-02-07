@@ -194,8 +194,8 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
               onClick={handleLike}
               disabled={liking}
               className={`group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs ring-1 ring-inset ${liked
-                  ? 'bg-red-500 text-white ring-red-500 shadow-lg shadow-red-500/30'
-                  : 'text-slate-400 ring-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-red-500'
+                ? 'bg-red-500 text-white ring-red-500 shadow-lg shadow-red-500/30'
+                : 'text-slate-400 ring-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-red-500'
                 }`}
             >
               <span className={`material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:scale-110 ${liked ? 'filled' : ''}`}>favorite</span>

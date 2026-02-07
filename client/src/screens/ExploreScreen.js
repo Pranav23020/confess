@@ -84,17 +84,15 @@ const ExploreScreen = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMode('trending')}
-              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${
-                mode === 'trending' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
-              }`}
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${mode === 'trending' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+                }`}
             >
               Trending
             </button>
             <button
               onClick={() => setMode('search')}
-              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${
-                mode === 'search' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
-              }`}
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${mode === 'search' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+                }`}
             >
               Discover
             </button>
@@ -159,9 +157,8 @@ const ExploreScreen = () => {
                   <button
                     key={c.value}
                     onClick={() => setCategory(c.value)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold ${
-                      category === c.value ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
-                    }`}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold ${category === c.value ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+                      }`}
                   >
                     {c.label}
                   </button>
