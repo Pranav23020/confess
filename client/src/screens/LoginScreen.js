@@ -72,17 +72,9 @@ const LoginScreen = () => {
                         </div>
 
                         <div>
-                            <div className="flex items-center justify-between">
-                                <label htmlFor="password" className="block text-xs sm:text-sm font-medium leading-6 text-gray-300">
-                                    Password
-                                </label>
-                                <Link
-                                    to="/forgot-password"
-                                    className="text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
+                            <label htmlFor="password" className="block text-xs sm:text-sm font-medium leading-6 text-gray-300">
+                                Password
+                            </label>
                             <div className="mt-2">
                                 <input
                                     id="password"
@@ -94,6 +86,14 @@ const LoginScreen = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="block w-full rounded-lg sm:rounded-md border-0 bg-white/5 py-2.5 sm:py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary text-sm sm:leading-6 px-3 sm:pl-3"
                                 />
+                            </div>
+                            <div className="mt-2 text-right">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                                >
+                                    Forgot password?
+                                </Link>
                             </div>
                         </div>
 

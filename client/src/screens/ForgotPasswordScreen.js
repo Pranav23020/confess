@@ -63,9 +63,6 @@ const ForgotPasswordScreen = () => {
                             </div>
                         </div>
 
-                        {message && <p className="text-emerald-400 text-xs sm:text-sm text-center">{message}</p>}
-                        {error && <p className="text-red-500 text-xs sm:text-sm text-center">{error}</p>}
-
                         <div>
                             <button
                                 type="submit"

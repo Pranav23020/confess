@@ -33,7 +33,10 @@ const ResetPasswordScreen = () => {
 
         setIsSubmitting(true);
         try {
-            const { data } = await api.post(`/auth/reset-password/${token}`, { password });
+            const { data } = await api.post(`/auth/reset-password/${token}`, { 
+                password, 
+                confirmPassword 
+            });
             const responseMessage = data?.message || 'Password reset successful. You can now log in.';
             setMessage(responseMessage);
             showToast(responseMessage, 'success');
