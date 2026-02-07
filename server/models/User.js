@@ -38,4 +38,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+// Index googleId for OAuth lookups
+userSchema.index({ googleId: 1 });
+
 module.exports = mongoose.model('User', userSchema);

@@ -44,5 +44,8 @@ const replySchema = new mongoose.Schema({
   }
 });
 
+// Compound index for user's replies sorted by date
+replySchema.index({ userId: 1, createdAt: -1 });
+
 // Reply expires with its parent confession (handled by MongoDB TTL on parent)
 module.exports = mongoose.model('Reply', replySchema);

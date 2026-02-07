@@ -120,4 +120,10 @@ confessionSchema.virtual('hoursRemaining').get(function () {
 
 confessionSchema.set('toJSON', { virtuals: true });
 
+// Compound indexes for common query patterns
+confessionSchema.index({ userId: 1, createdAt: -1 }); // For user's confessions sorted by date
+confessionSchema.index({ userId: 1, expiresAt: 1 }); // For counting active confessions
+confessionSchema.index({ createdAt: -1, likeCount: -1 }); // For trending/top confessions
+confessionSchema.index({ isPublished: 1, isHidden: 1, createdAt: -1 }); // For feed queries
+
 module.exports = mongoose.model('Confession', confessionSchema);
