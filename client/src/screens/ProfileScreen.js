@@ -247,27 +247,27 @@ const ProfileScreen = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto">
+          <div className="flex gap-2 mb-6 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap ${activeTab === 'overview' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap ${activeTab === 'overview' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
                 }`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab('confessions')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap ${activeTab === 'confessions' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap ${activeTab === 'confessions' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
                 }`}
             >
-              My Confessions ({myConfessions.length})
+              Confessions ({myConfessions.length})
             </button>
             <button
               onClick={() => setActiveTab('replies')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap ${activeTab === 'replies' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap ${activeTab === 'replies' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
                 }`}
             >
-              My Replies ({myReplies.length})
+              Replies ({myReplies.length})
             </button>
           </div>
 

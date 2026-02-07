@@ -281,15 +281,15 @@ const ConfessionDetailScreen = () => {
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5">
-        <div className="flex items-center justify-between px-5 h-16 max-w-md mx-auto w-full">
+        <div className="flex items-center justify-between px-3 sm:px-5 h-14 sm:h-16 max-w-md mx-auto w-full">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             <span className="material-symbols-outlined text-slate-900 dark:text-white">arrow_back</span>
           </button>
-          <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">Confession</h1>
-          <div className="flex items-center gap-2">
+          <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white">Confession</h1>
+          <div className="flex items-center gap-1 sm:gap-2">
             {confession?.isOwner && (
               <button
                 onClick={() => setShowDeleteModal(true)}
@@ -310,15 +310,15 @@ const ConfessionDetailScreen = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pt-20 pb-32 md:pb-24 px-4 md:px-8 lg:px-12 w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto overflow-y-auto">
+      <main className="flex-grow pt-16 sm:pt-20 pb-28 sm:pb-32 md:pb-24 px-3 sm:px-4 md:px-8 lg:px-12 w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto overflow-y-auto">
         {/* Confession */}
-        <div className="relative group mb-6 md:mb-8">
+        <div className="relative group mb-5 sm:mb-6 md:mb-8">
           <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/60 to-purple-500/20 rounded-2xl opacity-70 blur-[1px]"></div>
-          <div className="relative bg-white dark:bg-surface-dark rounded-2xl p-6 md:p-8 shadow-card overflow-hidden">
+          <div className="relative bg-white dark:bg-surface-dark rounded-2xl p-4 sm:p-6 md:p-8 shadow-card overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
             <div className="relative z-10">
-              <span className="material-symbols-outlined text-primary/40 text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
-              <p className="text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-6">
+              <span className="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-6">
                 {confession.text}
               </p>
               {images.length > 0 && (

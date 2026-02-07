@@ -227,23 +227,23 @@ const HomeScreen = () => {
       </header>
 
       {/* Main Content Feed */}
-      <main className="flex-grow pt-24 pb-32 md:pb-8 px-4 md:px-8 lg:px-12 w-full max-w-7xl mx-auto">
-        <div className="flex gap-10">
+      <main className="flex-grow pt-20 sm:pt-24 pb-28 sm:pb-32 md:pb-8 px-3 sm:px-4 md:px-8 lg:px-12 w-full max-w-7xl mx-auto">
+        <div className="flex gap-6 md:gap-10">
           <div className="flex-1 max-w-2xl">
-            <div className="mb-8 overflow-hidden">
+            <div className="mb-6 sm:mb-8 overflow-hidden">
               <div className="flex items-center gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-4 pt-2 px-1">
                 {storyChips.map((chip) => (
                   <button
                     key={chip.label}
                     onClick={() => setSelectedCategory(chip.value)}
-                    className="flex flex-col items-center gap-2 md:gap-3 flex-shrink-0 group transition-all duration-300 transform hover:-translate-y-1"
+                    className="flex flex-col items-center gap-1 md:gap-3 flex-shrink-0 group transition-all duration-300 transform hover:-translate-y-1"
                   >
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br ${chip.gradient} p-[2px] shadow-lg ${selectedCategory === chip.value ? 'shadow-glow scale-105' : 'group-hover:shadow-glow'} transition-all duration-500`}>
+                    <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br ${chip.gradient} p-[2px] shadow-lg ${selectedCategory === chip.value ? 'shadow-glow scale-105' : 'group-hover:shadow-glow'} transition-all duration-500`}>
                       <div className={`w-full h-full rounded-[14px] md:rounded-[22px] ${selectedCategory === chip.value ? 'bg-transparent' : 'bg-background-light dark:bg-background-dark'} flex items-center justify-center transition-colors group-hover:bg-transparent`}>
-                        <span className={`material-symbols-outlined text-[20px] md:text-[24px] ${selectedCategory === chip.value ? 'text-white' : 'text-slate-700 dark:text-white'} group-hover:text-white transition-colors`}>{chip.icon}</span>
+                        <span className={`material-symbols-outlined text-[18px] sm:text-[20px] md:text-[24px] ${selectedCategory === chip.value ? 'text-white' : 'text-slate-700 dark:text-white'} group-hover:text-white transition-colors`}>{chip.icon}</span>
                       </div>
                     </div>
-                    <span className={`text-[10px] md:text-[12px] font-bold ${selectedCategory === chip.value ? 'text-primary' : 'text-slate-500 dark:text-slate-400'} group-hover:text-primary transition-colors tracking-wide`}>{chip.label}</span>
+                    <span className={`text-[9px] sm:text-[10px] md:text-[12px] font-bold ${selectedCategory === chip.value ? 'text-primary' : 'text-slate-500 dark:text-slate-400'} group-hover:text-primary transition-colors tracking-wide`}>{chip.label}</span>
                   </button>
                 ))}
               </div>
@@ -302,7 +302,7 @@ const HomeScreen = () => {
                     </Link>
                   )}
                 </div>
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-5 sm:gap-6 md:gap-8">
                   {filteredConfessions.map((confession) => (
                     <ConfessionCard key={confession._id} confession={confession} showExpiry={false} />
                   ))}

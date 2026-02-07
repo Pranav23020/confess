@@ -1,0 +1,32 @@
+================================
+VERCEL ENVIRONMENT VARIABLES
+================================
+Copy these to: Vercel Dashboard → Your Project → Settings → Environment Variables
+
+REACT_APP_API_URL=https://confess-3ix3.onrender.com/api
+
+================================
+IMPORTANT NOTES:
+================================
+1. This is the ONLY environment variable needed for the frontend
+2. It tells your React app where to find the backend API
+
+To add this in Vercel:
+1. Go to your project in Vercel Dashboard
+2. Click "Settings" (top navigation)
+3. Click "Environment Variables" (left sidebar)
+4. Click "Add New"
+5. Name: REACT_APP_API_URL
+6. Value: https://confess-3ix3.onrender.com/api
+7. Check all environments: Production, Preview, Development
+8. Click "Save"
+9. Go to "Deployments" tab and click "Redeploy" on latest deployment
+
+================================
+ALTERNATIVE SETUP (If you want to use custom domain for backend later):
+================================
+If you add "anonconfess.in" as a custom domain to your Render backend service:
+REACT_APP_API_URL=https://anonconfess.in/api
+
+Then you would also need to update in Render:
+GOOGLE_CALLBACK_URL=https://anonconfess.in/api/auth/google/callback

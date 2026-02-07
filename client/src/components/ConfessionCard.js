@@ -112,15 +112,15 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
       {/* Outer border glow - more subtle and precise */}
       <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[24px] opacity-40 group-hover:opacity-100 transition-opacity duration-700 blur-[2px]`}></div>
 
-      <div className="relative bg-white dark:bg-surface-dark rounded-[23px] p-7 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/5">
+      <div className="relative bg-white dark:bg-surface-dark rounded-[20px] sm:rounded-[23px] p-4 sm:p-6 md:p-7 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/5">
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700"></div>
 
         <div className="relative z-10 flex-grow">
-          <div className="flex justify-between items-start mb-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary/10 transition-colors">
-                <span className="material-symbols-outlined text-primary/60 text-2xl select-none">format_quote</span>
+          <div className="flex justify-between items-start mb-4 sm:mb-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary/10 transition-colors">
+                <span className="material-symbols-outlined text-primary/60 text-xl sm:text-2xl select-none">format_quote</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">A WHISPER FROM</span>

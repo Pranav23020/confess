@@ -77,14 +77,14 @@ const ExploreScreen = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen">
-      <div className="relative w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto pb-24 md:pb-8 px-5 md:px-8 lg:px-12">
+      <div className="relative w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto pb-28 sm:pb-24 md:pb-8 px-3 sm:px-5 md:px-8 lg:px-12">
         {/* Header */}
-        <header className="flex items-center justify-between pt-20 md:pt-24 pb-6 md:pb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Explore</h1>
+        <header className="flex items-center justify-between pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Explore</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMode('trending')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${
                 mode === 'trending' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
               }`}
             >
@@ -92,7 +92,7 @@ const ExploreScreen = () => {
             </button>
             <button
               onClick={() => setMode('search')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold ${
                 mode === 'search' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400'
               }`}
             >
@@ -102,29 +102,29 @@ const ExploreScreen = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto pb-8 space-y-8">
+        <main className="flex-1 overflow-y-auto pb-8 space-y-6 sm:space-y-8">
           {/* Confession of the Day */}
           {confessionOfDay && (
             <div>
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3">Confession of the Day</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3">Confession of the Day</p>
               <ConfessionCard confession={confessionOfDay} showExpiry={false} />
             </div>
           )}
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 border border-slate-100 dark:border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-white/5">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Active Now</p>
-                <p className="text-2xl font-bold text-primary">{stats.totalActive}</p>
+                <p className="text-xl sm:text-2xl font-bold text-primary mt-1">{stats.totalActive}</p>
               </div>
-              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 border border-slate-100 dark:border-white/5">
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-white/5">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Posted Today</p>
-                <p className="text-2xl font-bold text-primary">{stats.todayCount}</p>
+                <p className="text-xl sm:text-2xl font-bold text-primary mt-1">{stats.todayCount}</p>
               </div>
-              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 border border-slate-100 dark:border-white/5">
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-white/5">
                 <p className="text-xs text-slate-500 dark:text-slate-400">Busiest Hour</p>
-                <p className="text-2xl font-bold text-primary">{stats.busiestHour}:00</p>
+                <p className="text-xl sm:text-2xl font-bold text-primary mt-1">{stats.busiestHour}:00</p>
               </div>
             </div>
           )}
@@ -176,11 +176,11 @@ const ExploreScreen = () => {
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             </div>
           ) : error ? (
-            <div className="text-center text-red-500">{error}</div>
+            <div className="text-center text-red-500 text-sm">{error}</div>
           ) : confessions.length === 0 ? (
-            <div className="text-center text-slate-400">No confessions found.</div>
+            <div className="text-center text-slate-400 text-sm">No confessions found.</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
               {confessions.map((confession) => (
                 <ConfessionCard key={confession._id} confession={confession} showExpiry={false} />
               ))}
