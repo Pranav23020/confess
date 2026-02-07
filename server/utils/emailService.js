@@ -4,7 +4,14 @@ const nodemailer = require('nodemailer');
  * Zoho SMTP Configuration
  * Production-ready email service for password reset
  */
-const createTransporter = () => {
+const SMTP_CONFIGS = [
+    { name: 'Zoho Pro TLS 587', host: 'smtppro.zoho.in', port: 587, secure: false, requireTLS: true },
+    { name: 'Zoho TLS 587', host: 'smtp.zoho.in', port: 587, secure: false, requireTLS: true },
+    { name: 'Zoho Pro SSL 465', host: 'smtppro.zoho.in', port: 465, secure: true },
+    { name: 'Zoho SSL 465', host: 'smtp.zoho.in', port: 465, secure: true }
+];
+
+const createTransporter = (smtpConfig = SMTP_CONFIGS[0]) => {
     const emailUser = process.env.EMAIL_USER || 'noreply@anonconfess.in';
     const emailPassword = process.env.EMAIL_PASSWORD;
 
@@ -12,17 +19,17 @@ const createTransporter = () => {
     console.log(`   EMAIL_USER: ${emailUser}`);
     console.log(`   EMAIL_PASSWORD: ${emailPassword ? '✅ Set' : '❌ NOT SET'}`);
     console.log(`   Password length: ${emailPassword ? emailPassword.length : 0} chars`);
-    console.log(`   SMTP Host: smtppro.zoho.in:587 (TLS)`);
+    console.log(`   SMTP Host: ${smtpConfig.host}:${smtpConfig.port} (${smtpConfig.secure ? 'SSL' : 'TLS'})`);
 
     if (!emailPassword) {
         console.error('❌ EMAIL_PASSWORD environment variable is not set!');
     }
 
     const config = {
-        host: 'smtppro.zoho.in',
-        port: 587,
-        secure: false, // TLS via STARTTLS
-        requireTLS: true,
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        requireTLS: smtpConfig.requireTLS || false,
         auth: {
             user: emailUser,
             pass: emailPassword
@@ -36,7 +43,7 @@ const createTransporter = () => {
         debug: true
     };
 
-    console.log('🔗 Creating Nodemailer transporter with TLS...');
+    console.log(`🔗 Creating Nodemailer transporter (${smtpConfig.name})...`);
     return nodemailer.createTransport(config);
 };
 
@@ -52,8 +59,6 @@ const sendPasswordResetEmail = async ({ email, resetUrl, username }) => {
     try {
         console.log(`\n📧 Sending password reset email to: ${email}`);
         
-        const transporter = createTransporter();
-
         const mailOptions = {
             from: '"AnonConfess" <noreply@anonconfess.in>',
             to: email,
@@ -62,18 +67,29 @@ const sendPasswordResetEmail = async ({ email, resetUrl, username }) => {
             text: generateResetEmailText({ resetUrl, username })
         };
 
-        console.log('   Connecting to Zoho SMTP...');
-        const startTime = Date.now();
-        
-        const info = await transporter.sendMail(mailOptions);
-        
-        const duration = Date.now() - startTime;
-        console.log(`✅ Password reset email sent successfully!`);
-        console.log(`   Message ID: ${info.messageId}`);
-        console.log(`   Time: ${duration}ms`);
-        console.log(`   To: ${email}`);
-        
-        return true;
+        for (const smtpConfig of SMTP_CONFIGS) {
+            try {
+                console.log(`   Connecting to Zoho SMTP (${smtpConfig.name})...`);
+                const transporter = createTransporter(smtpConfig);
+                const startTime = Date.now();
+
+                const info = await transporter.sendMail(mailOptions);
+
+                const duration = Date.now() - startTime;
+                console.log(`✅ Password reset email sent successfully!`);
+                console.log(`   Message ID: ${info.messageId}`);
+                console.log(`   Time: ${duration}ms`);
+                console.log(`   To: ${email}`);
+                console.log(`   SMTP Used: ${smtpConfig.name}`);
+
+                return true;
+            } catch (error) {
+                console.warn(`   ⚠️  Send failed on ${smtpConfig.name}: ${error.message}`);
+            }
+        }
+
+        console.error('❌ All SMTP configurations failed to send email.');
+        return false;
     } catch (error) {
         console.error(`\n❌ Failed to send password reset email to ${email}`);
         console.error(`   Error: ${error.message}`);
@@ -271,11 +287,12 @@ const verifyEmailService = async () => {
         // ========== SMTP CONFIGURATION ==========
         console.log('\n🔗 STEP 3: SMTP Configuration');
         console.log('─────────────────────────────────────────────────────────────');
-        console.log(`   SMTP Host:        smtppro.zoho.in`);
-        console.log(`   SMTP Port:        587 (TLS)`);
+        console.log(`   Primary Target:   ${SMTP_CONFIGS[0].name}`);
+        console.log(`   Host:             ${SMTP_CONFIGS[0].host}`);
+        console.log(`   Port:             ${SMTP_CONFIGS[0].port}`);
+        console.log(`   Encryption:       ${SMTP_CONFIGS[0].secure ? 'SSL' : 'TLS'}`);
         console.log(`   Authentication:   Enabled`);
-        console.log(`   Encryption:       STARTTLS`);
-        console.log(`   Connection Type:  TLS (secure: false)`);
+        console.log(`   Fallbacks:        ${SMTP_CONFIGS.slice(1).map((cfg) => cfg.name).join(', ')}`);
 
         // ========== FRONTEND SETUP CHECK ==========
         console.log('\n🌐 STEP 4: Frontend Setup Check');
@@ -324,33 +341,48 @@ const verifyEmailService = async () => {
         console.log('\n🔌 STEP 6: Nodemailer Connection Test');
         console.log('─────────────────────────────────────────────────────────────');
         
-        const transporter = createTransporter();
-        console.log(`   Creating Nodemailer transporter...`);
-        console.log(`   Timeout Settings:`);
-        console.log(`      - Connection Timeout: 10 seconds`);
-        console.log(`      - Greeting Timeout: 10 seconds`);
-        console.log(`      - Socket Timeout: 10 seconds`);
+        let lastError = null;
+        for (const smtpConfig of SMTP_CONFIGS) {
+            try {
+                const transporter = createTransporter(smtpConfig);
+                console.log(`   Creating Nodemailer transporter (${smtpConfig.name})...`);
+                console.log(`   Timeout Settings:`);
+                console.log(`      - Connection Timeout: 10 seconds`);
+                console.log(`      - Greeting Timeout: 10 seconds`);
+                console.log(`      - Socket Timeout: 10 seconds`);
 
-        console.log(`\n   Attempting SMTP handshake...`);
-        const startTime = Date.now();
-        
-        await transporter.verify();
-        
-        const duration = Date.now() - startTime;
-        console.log(`\n╔═══════════════════════════════════════════════════════════════╗`);
-        console.log(`║              ✅ EMAIL SERVICE READY - SUCCESS! ✅              ║`);
-        console.log(`╚═══════════════════════════════════════════════════════════════╝`);
-        console.log(`\n   Connection Details:`);
-        console.log(`   ✅ SMTP Server:    smtppro.zoho.in:587`);
-        console.log(`   ✅ Email Account:  ${emailUser}`);
-        console.log(`   ✅ Connection Time: ${duration}ms`);
-        console.log(`   ✅ Status:         Ready to send emails`);
-        console.log(`   ✅ Frontend URL:   ${frontendUrl || 'default'}`);
-        console.log(`\n   Password reset emails will be sent to users at:`)
-        console.log(`   📧 From: AnonConfess <${emailUser}>`);
-        console.log(`   🔗 Reset Link: ${frontendUrl || 'https://anonconfess.in'}/reset-password/:token\n`);
-        
-        return true;
+                console.log(`\n   Attempting SMTP handshake (${smtpConfig.name})...`);
+                const startTime = Date.now();
+
+                await transporter.verify();
+
+                const duration = Date.now() - startTime;
+                console.log(`\n╔═══════════════════════════════════════════════════════════════╗`);
+                console.log(`║              ✅ EMAIL SERVICE READY - SUCCESS! ✅              ║`);
+                console.log(`╚═══════════════════════════════════════════════════════════════╝`);
+                console.log(`\n   Connection Details:`);
+                console.log(`   ✅ SMTP Server:    ${smtpConfig.host}:${smtpConfig.port}`);
+                console.log(`   ✅ Email Account:  ${emailUser}`);
+                console.log(`   ✅ Connection Time: ${duration}ms`);
+                console.log(`   ✅ Status:         Ready to send emails`);
+                console.log(`   ✅ Frontend URL:   ${frontendUrl || 'default'}`);
+                console.log(`   ✅ SMTP Profile:   ${smtpConfig.name}`);
+                console.log(`\n   Password reset emails will be sent to users at:`);
+                console.log(`   📧 From: AnonConfess <${emailUser}>`);
+                console.log(`   🔗 Reset Link: ${frontendUrl || 'https://anonconfess.in'}/reset-password/:token\n`);
+
+                return true;
+            } catch (error) {
+                lastError = error;
+                console.warn(`   ⚠️  SMTP verify failed on ${smtpConfig.name}: ${error.message}`);
+            }
+        }
+
+        if (lastError) {
+            throw lastError;
+        }
+
+        throw new Error('All SMTP configurations failed.');
     } catch (error) {
         const startTime = Date.now();
         
