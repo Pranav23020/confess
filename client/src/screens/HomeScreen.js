@@ -199,8 +199,8 @@ const HomeScreen = () => {
     <div className="flex flex-col min-h-screen">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 transition-all duration-300">
-        <div className="flex items-center justify-between px-5 md:px-8 lg:px-12 h-16 max-w-md md:max-w-4xl lg:max-w-7xl mx-auto w-full">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Confessions</h1>
+        <div className="flex items-center justify-between px-3 sm:px-5 md:px-8 lg:px-12 h-14 sm:h-16 max-w-md md:max-w-4xl lg:max-w-7xl mx-auto w-full">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Confessions</h1>
           <div className="flex items-center gap-4">
             {canPost ? (
               <Link
@@ -227,10 +227,10 @@ const HomeScreen = () => {
       </header>
 
       {/* Main Content Feed */}
-      <main className="flex-grow pt-20 sm:pt-24 pb-28 sm:pb-32 md:pb-8 px-3 sm:px-4 md:px-8 lg:px-12 w-full max-w-7xl mx-auto">
-        <div className="flex gap-6 md:gap-10">
+      <main className="flex-grow pt-16 sm:pt-20 md:pt-24 pb-24 sm:pb-28 md:pb-8 px-2 sm:px-4 md:px-8 lg:px-12 w-full max-w-7xl mx-auto">
+        <div className="flex gap-4 md:gap-10">
           <div className="flex-1 max-w-2xl">
-            <div className="mb-6 sm:mb-8 overflow-hidden">
+            <div className="mb-4 sm:mb-6 md:mb-8 overflow-hidden">
               <div className="flex items-center gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-4 pt-2 px-1">
                 {storyChips.map((chip) => (
                   <button
@@ -302,7 +302,7 @@ const HomeScreen = () => {
                     </Link>
                   )}
                 </div>
-                <div className="flex flex-col gap-5 sm:gap-6 md:gap-8">
+                <div className="flex flex-col gap-3 sm:gap-4 md:gap-6">
                   {filteredConfessions.map((confession) => (
                     <ConfessionCard key={confession._id} confession={confession} showExpiry={false} />
                   ))}

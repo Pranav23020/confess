@@ -176,8 +176,8 @@ const ProfileScreen = () => {
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen overflow-x-hidden">
       <div className="relative w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24 md:pb-8 px-5 md:px-8 lg:px-12">
         {/* Header */}
-        <header className="flex items-center justify-between pt-20 md:pt-24 pb-6 md:pb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Profile</h1>
+        <header className="flex items-center justify-between pt-14 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Profile</h1>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm md:text-base font-semibold transition-colors shadow-sm"
@@ -190,14 +190,14 @@ const ProfileScreen = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           {/* Profile Header Card */}
-          <div className="bg-gradient-to-br from-primary/10 to-purple-500/5 rounded-2xl md:rounded-3xl p-6 md:p-8 mb-6 border border-primary/20">
-            <div className="flex items-start gap-4 md:gap-6">
+          <div className="bg-gradient-to-br from-primary/10 to-purple-500/5 rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 border border-primary/20">
+            <div className="flex items-start gap-3 sm:gap-4 md:gap-6">
               {/* Avatar */}
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary flex items-center justify-center overflow-hidden flex-shrink-0">
+              <div className="w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 rounded-full bg-primary flex items-center justify-center overflow-hidden flex-shrink-0">
                 {profile.avatar ? (
                   <img src={profile.avatar} alt={profile.username} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-white text-2xl md:text-3xl font-bold">
+                  <span className="text-white text-lg sm:text-2xl md:text-3xl font-bold">
                     {profile.username?.charAt(0).toUpperCase()}
                   </span>
                 )}
@@ -205,41 +205,41 @@ const ProfileScreen = () => {
 
               {/* User Info */}
               <div className="flex-1">
-                <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-1">
+                <h2 className="text-base sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-0.5 sm:mb-1">
                   {profile.username}
                 </h2>
-                <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 mb-3">
+                <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-400 mb-1 sm:mb-2 break-all">
                   {profile.email}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500">
+                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-500">
                   Member since {formatDate(profile.createdAt)}
                 </p>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 mt-6 pt-6 border-t border-primary/20">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-5 md:mt-6 pt-4 sm:pt-5 md:pt-6 border-t border-primary/20">
               <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-primary">
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-primary">
                   {profile.stats?.totalConfessions || 0}
                 </p>
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                <p className="text-[9px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
                   Confessions
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-primary">
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-primary">
                   {profile.stats?.totalReplies || 0}
                 </p>
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                <p className="text-[9px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
                   Replies
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-primary">
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-primary">
                   {profile.stats?.activeConfessions || 0}
                 </p>
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                <p className="text-[9px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">
                   Active
                 </p>
               </div>

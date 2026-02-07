@@ -310,11 +310,11 @@ const ConfessionDetailScreen = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pt-16 sm:pt-20 pb-28 sm:pb-32 md:pb-24 px-3 sm:px-4 md:px-8 lg:px-12 w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto overflow-y-auto">
+      <main className="flex-grow pt-14 sm:pt-20 pb-24 sm:pb-28 md:pb-24 px-2 sm:px-4 md:px-8 lg:px-12 w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto overflow-y-auto">
         {/* Confession */}
-        <div className="relative group mb-5 sm:mb-6 md:mb-8">
-          <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/60 to-purple-500/20 rounded-2xl opacity-70 blur-[1px]"></div>
-          <div className="relative bg-white dark:bg-surface-dark rounded-2xl p-4 sm:p-6 md:p-8 shadow-card overflow-hidden">
+        <div className="relative group mb-4 sm:mb-5 md:mb-6">
+          <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/60 to-purple-500/20 rounded-xl sm:rounded-2xl opacity-70 blur-[1px]"></div>
+          <div className="relative bg-white dark:bg-surface-dark rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-8 shadow-card overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
@@ -322,12 +322,12 @@ const ConfessionDetailScreen = () => {
                 {confession.text}
               </p>
               {images.length > 0 && (
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <div className="relative group cursor-pointer" onClick={() => openImageModal(0)}>
                     <img
                       src={getImageUrl(images[0])}
                       alt="Confession"
-                      className="w-full rounded-xl object-cover max-h-96 border border-slate-200 dark:border-white/10"
+                      className="w-full rounded-lg sm:rounded-xl object-cover max-h-48 sm:max-h-64 border border-slate-200 dark:border-white/10"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                       <span className="px-3 py-1.5 text-xs font-semibold text-white bg-black/40 rounded-full">View photo</span>
