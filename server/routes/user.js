@@ -62,6 +62,42 @@ router.get('/my-confessions', async (req, res) => {
 });
 
 /**
+ * PUT /api/user/update-username
+ * Update user's username
+ * @access Private
+ */
+router.put('/update-username', protect, async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    if (!username || username.length < 3) {
+      return res.status(400).json({ success: false, error: 'Username must be at least 3 characters' });
+    }
+
+    // Check if username is already taken by someone else
+    const existingUser = await User.findOne({ 
+      username: username.toLowerCase(), 
+      _id: { $ne: req.user._id } // Exclude current user
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: 'Username already taken' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { username: username.toLowerCase() },
+      { new: true, runValidators: true }
+    ).select('username email avatar role createdAt');
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * GET /api/user/profile
  * Get authenticated user's profile information
  * @access Private

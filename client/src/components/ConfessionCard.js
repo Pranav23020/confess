@@ -150,7 +150,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
           </div>
 
           <p className="text-sm sm:text-base md:text-lg font-bold leading-tight sm:leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-3 sm:mb-4 [text-wrap:balance]">
-            {confession.text}
+            {confession.text.replace(/#[\w]+/gi, '').trim()}
           </p>
 
           {/* Hashtags Display - Only visible to creator */}

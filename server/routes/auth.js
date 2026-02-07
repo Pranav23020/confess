@@ -65,27 +65,69 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, googleId, avatar, displayName } = req.body;
 
-        // Create user
-        // Note: In a real app, hash password here. 
-        // Usually models handle pre-save hashing, but let's do it manually for explicit control if model doesn't
+        // Validate username and email
+        if (!username || !email) {
+            return res.status(400).json({ success: false, error: 'Username and email are required' });
+        }
 
-        // We didn't add pre-save hook in model artifact, so let's hash here
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
+        // Check if username already exists
+        const existingUsername = await User.findOne({ username: username.toLowerCase() });
+        if (existingUsername) {
+            return res.status(400).json({ success: false, error: 'Username already taken' });
+        }
 
-        const user = await User.create({
-            username,
-            email,
-            password: passwordHash,
-            avatar: `https://ui-avatars.com/api/?name=${username}&background=random`
-        });
+        // Check if email already exists
+        const existingEmail = await User.findOne({ email: email.toLowerCase() });
+        if (existingEmail) {
+            return res.status(400).json({ success: false, error: 'Email already registered' });
+        }
+
+        const userData = {
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+            avatar: avatar || `https://ui-avatars.com/api/?name=${username}&background=random`
+        };
+
+        // If registering via Google OAuth
+        if (googleId) {
+            userData.googleId = googleId;
+        } else if (password) {
+            // If registering with email/password
+            const salt = await bcrypt.genSalt(10);
+            userData.password = await bcrypt.hash(password, salt);
+        } else {
+            return res.status(400).json({ success: false, error: 'Password is required for email registration' });
+        }
+
+        const user = await User.create(userData);
 
         sendTokenResponse(user, 201, res);
     } catch (err) {
         console.error(err);
         res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+// @route   POST /api/auth/check-username
+// @desc    Check if username is available
+// @access  Public
+router.post('/check-username', async (req, res) => {
+    try {
+        const { username } = req.body;
+
+        if (!username || username.length < 3) {
+            return res.status(400).json({ available: false, error: 'Username must be at least 3 characters' });
+        }
+
+        const existingUser = await User.findOne({ username: username.toLowerCase() });
+        const available = !existingUser;
+
+        res.json({ available, username });
+    } catch (err) {
+        console.error(err);
+        res.status(400).json({ available: false, error: err.message });
     }
 });
 
@@ -143,18 +185,30 @@ router.get(
                 return res.redirect(`${frontendURL}/login?error=authentication_failed`);
             }
 
-            const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
-                expiresIn: JWT_EXPIRE
-            });
+            // Check if user has _id (existing user) or not (new google user needing registration)
+            if (req.user._id) {
+                // Existing user - login them
+                const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
+                    expiresIn: JWT_EXPIRE
+                });
 
-            // Set cookie
-            const isProduction = process.env.NODE_ENV === 'production';
-            const cookieOptions = getCookieOptions(isProduction);
-            res.cookie('token', token, cookieOptions);
+                const isProduction = process.env.NODE_ENV === 'production';
+                const cookieOptions = getCookieOptions(isProduction);
+                res.cookie('token', token, cookieOptions);
 
-            // Redirect to frontend with oauth flag to trigger refetch
-            const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
-            res.redirect(`${frontendURL}/?oauth=true`);
+                const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+                res.redirect(`${frontendURL}/?oauth=true`);
+            } else {
+                // New user - redirect to registration with google data
+                const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+                const params = new URLSearchParams({
+                    email: req.user.email,
+                    displayName: req.user.displayName,
+                    googleId: req.user.googleId,
+                    avatar: req.user.avatar || ''
+                });
+                res.redirect(`${frontendURL}/register?${params.toString()}`);
+            }
         } catch (err) {
             console.error('Google callback error:', err);
             const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';

@@ -62,6 +62,9 @@ export const userAPI = {
 
   getMyActivity: (type = 'all') =>
     api.get(`/user/my-activity?type=${type}`),
+
+  updateUsername: (username) =>
+    api.put('/user/update-username', { username }),
 };
 
 // Reports API

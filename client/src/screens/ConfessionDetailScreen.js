@@ -5,6 +5,7 @@ import ReplyBubble from '../components/ReplyBubble';
 import { confessionsAPI, repliesAPI, likesAPI, pollsAPI } from '../api';
 import ShareTemplateModal from '../components/ShareTemplateModal';
 import ConfirmationModal from '../components/ConfirmationModal';
+import HashtagBadges from '../components/HashtagBadges';
 import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -318,9 +319,14 @@ const ConfessionDetailScreen = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
-              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-6">
-                {confession.text}
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-4 sm:mb-5 md:mb-6">
+                {confession.text.replace(/#[\w]+/gi, '').trim()}
               </p>
+              {user && confession.userId === user._id && confession.hashtags && confession.hashtags.length > 0 && (
+                <div className="mb-6">
+                  <HashtagBadges hashtags={confession.hashtags} size="md" />
+                </div>
+              )}
               {images.length > 0 && (
                 <div className="mb-4 sm:mb-6">
                   <div className="relative group cursor-pointer" onClick={() => openImageModal(0)}>

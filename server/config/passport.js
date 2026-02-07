@@ -12,35 +12,34 @@ module.exports = function (passport) {
                 proxy: true // Important for cloud deployments/reverse proxies
             },
             async (accessToken, refreshToken, profile, done) => {
-                const newUser = {
-                    googleId: profile.id,
-                    email: profile.emails[0].value,
-                    username: profile.displayName,
-                    avatar: profile.photos[0].value
-                };
-
                 try {
-                    // Check if user exists
+                    // Check if user exists by googleId
                     let user = await User.findOne({ googleId: profile.id });
 
                     if (user) {
                         return done(null, user);
-                    } else {
-                        // Check if user exists by email (to merge accounts)
-                        user = await User.findOne({ email: profile.emails[0].value });
+                    }
 
-                        if (user) {
-                            // Update existing user with googleId
-                            user.googleId = profile.id;
-                            user.avatar = user.avatar || profile.photos[0].value;
-                            await user.save();
-                            return done(null, user);
-                        }
-
-                        // Create new user
-                        user = await User.create(newUser);
+                    // Check if user exists by email - assign googleId only if password exists
+                    user = await User.findOne({ email: profile.emails[0].value }).select('+password');
+                    
+                    if (user && user.password) {
+                        // User registered with email/password, assign googleId
+                        user.googleId = profile.id;
+                        user.avatar = user.avatar || profile.photos[0].value;
+                        await user.save();
                         return done(null, user);
                     }
+
+                    // No existing user - store profile temporarily for registration
+                    // Return partial profile for user to complete registration
+                    const tempUser = {
+                        email: profile.emails[0].value,
+                        displayName: profile.displayName,
+                        googleId: profile.id,
+                        avatar: profile.photos[0]?.value || ''
+                    };
+                    return done(null, tempUser);
                 } catch (err) {
                     console.error(err);
                     return done(err, null);

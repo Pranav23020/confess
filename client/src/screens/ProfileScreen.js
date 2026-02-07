@@ -24,6 +24,8 @@ const ProfileScreen = () => {
   const [confessionToDelete, setConfessionToDelete] = useState(null);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -172,6 +174,27 @@ const ProfileScreen = () => {
     showToast(outcome === 'accepted' ? 'App installed!' : 'Installation cancelled', outcome === 'accepted' ? 'success' : 'info');
   };
 
+  const handleUpdateUsername = async () => {
+    if (!newUsername || newUsername.length < 3) {
+      showToast('Username must be at least 3 characters', 'error');
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    try {
+      const response = await userAPI.updateUsername(newUsername);
+      if (response.data.success) {
+        setProfile(response.data.user);
+        setNewUsername('');
+        showToast('Username updated successfully!', 'success');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to update username', 'error');
+    } finally {
+      setIsUpdatingUsername(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
@@ -295,6 +318,46 @@ const ProfileScreen = () => {
           {/* Tab Content */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
+              {/* User Settings */}
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
+                <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-4">
+                  Account Settings
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                      Current Username
+                    </label>
+                    <p className="text-sm md:text-base font-semibold text-slate-900 dark:text-white">
+                      {profile?.username}
+                    </p>
+                  </div>
+                  <div>
+                    <details className="cursor-pointer">
+                      <summary className="text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+                        ✎ Change username
+                      </summary>
+                      <div className="mt-3 space-y-3">
+                        <input
+                          type="text"
+                          placeholder="New username"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          className="w-full px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white"
+                        />
+                        <button
+                          onClick={handleUpdateUsername}
+                          disabled={isUpdatingUsername || !newUsername}
+                          className="w-full px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+                        >
+                          {isUpdatingUsername ? 'Updating...' : 'Update Username'}
+                        </button>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              </div>
+
               {/* Content Filters */}
               <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
                 <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-4">
@@ -462,7 +525,7 @@ const ProfileScreen = () => {
                       </div>
                     </div>
                     <p className="text-base font-medium text-slate-800 dark:text-gray-100 mb-3 leading-relaxed">
-                      {confession.text}
+                      {confession.text.replace(/#[\w]+/gi, '').trim()}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       <span className="flex items-center gap-1">
@@ -499,7 +562,7 @@ const ProfileScreen = () => {
                     onClick={() => reply.confessionId?._id && navigate(`/confession/${reply.confessionId._id}`)}
                   >
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-                      Reply to: <span className="font-medium">"{reply.confessionId?.text?.substring(0, 50)}..."</span>
+                      Reply to: <span className="font-medium">"{reply.confessionId?.text?.replace(/#[\w]+/gi, '').trim().substring(0, 50)}..."</span>
                     </p>
                     <p className="text-base font-medium text-slate-800 dark:text-gray-100 mb-2">
                       {reply.text}
