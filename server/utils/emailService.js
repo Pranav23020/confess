@@ -12,7 +12,7 @@ const createTransporter = () => {
     console.log(`   EMAIL_USER: ${emailUser}`);
     console.log(`   EMAIL_PASSWORD: ${emailPassword ? '✅ Set' : '❌ NOT SET'}`);
     console.log(`   Password length: ${emailPassword ? emailPassword.length : 0} chars`);
-    console.log(`   SMTP Host: smtppro.zoho.in:465 (SSL)`);
+    console.log(`   SMTP Host: smtppro.zoho.in:587 (TLS)`);
 
     if (!emailPassword) {
         console.error('❌ EMAIL_PASSWORD environment variable is not set!');
@@ -20,8 +20,9 @@ const createTransporter = () => {
 
     const config = {
         host: 'smtppro.zoho.in',
-        port: 465,
-        secure: true, // SSL
+        port: 587,
+        secure: false, // TLS via STARTTLS
+        requireTLS: true,
         auth: {
             user: emailUser,
             pass: emailPassword
@@ -35,7 +36,7 @@ const createTransporter = () => {
         debug: true
     };
 
-    console.log('🔗 Creating Nodemailer transporter with SSL...');
+    console.log('🔗 Creating Nodemailer transporter with TLS...');
     return nodemailer.createTransport(config);
 };
 
@@ -271,10 +272,10 @@ const verifyEmailService = async () => {
         console.log('\n🔗 STEP 3: SMTP Configuration');
         console.log('─────────────────────────────────────────────────────────────');
         console.log(`   SMTP Host:        smtppro.zoho.in`);
-        console.log(`   SMTP Port:        465 (SSL)`);
+        console.log(`   SMTP Port:        587 (TLS)`);
         console.log(`   Authentication:   Enabled`);
-        console.log(`   Encryption:       SSL/TLS`);
-        console.log(`   Connection Type:  Secure`);
+        console.log(`   Encryption:       STARTTLS`);
+        console.log(`   Connection Type:  TLS (secure: false)`);
 
         // ========== FRONTEND SETUP CHECK ==========
         console.log('\n🌐 STEP 4: Frontend Setup Check');
@@ -340,7 +341,7 @@ const verifyEmailService = async () => {
         console.log(`║              ✅ EMAIL SERVICE READY - SUCCESS! ✅              ║`);
         console.log(`╚═══════════════════════════════════════════════════════════════╝`);
         console.log(`\n   Connection Details:`);
-        console.log(`   ✅ SMTP Server:    smtppro.zoho.in:465`);
+        console.log(`   ✅ SMTP Server:    smtppro.zoho.in:587`);
         console.log(`   ✅ Email Account:  ${emailUser}`);
         console.log(`   ✅ Connection Time: ${duration}ms`);
         console.log(`   ✅ Status:         Ready to send emails`);
@@ -382,7 +383,7 @@ const verifyEmailService = async () => {
 
             console.error(`\n   2️⃣  NETWORK/FIREWALL ISSUE`);
             console.error(`       ❌ Render might be blocked:`);
-            console.error(`          - Port 465 blocked by firewall`);
+            console.error(`          - Port 587 blocked by firewall`);
             console.error(`          - Render IP whitelisted in Zoho`);
             console.error(`          - ISP blocking SMTP`);
             console.error(`       ✅ Solution:`);
@@ -430,7 +431,7 @@ const verifyEmailService = async () => {
             console.error(`   ❌ Port 465 might not be accessible`);
             console.error(`   ✅ Solution:`);
             console.error(`      - Verify SMTP access enabled on Zoho account`);
-            console.error(`      - Check port 465 is correct (not 587 or 25)`);
+            console.error(`      - Check port 587 is correct (not 465 or 25)`);
             console.error(`      - Contact Zoho support`);
         }
 
