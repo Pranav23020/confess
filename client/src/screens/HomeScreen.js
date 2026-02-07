@@ -219,6 +219,9 @@ const HomeScreen = () => {
                 <span className="hidden lg:inline">Limit Reached</span>
               </Link>
             )}
+            <button className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg md:rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors active:scale-95">
+              <span className="material-symbols-outlined text-sm sm:text-base text-slate-600 dark:text-slate-300">tune</span>
+            </button>
           </div>
         </div>
       </header>
@@ -423,12 +426,14 @@ const HomeScreen = () => {
             to="/new"
             className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
           >
+           
           </Link>
         ) : (
           <Link
             to="/limit-reached"
             className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-slate-400 dark:bg-slate-600 rounded-2xl shadow-lg shadow-slate-400/40 text-white transition-all duration-300 hover:scale-110 active:scale-95"
           >
+            <span className="material-symbols-outlined text-2xl sm:text-3xl">block</span>
           </Link>
         )}
       </div>
