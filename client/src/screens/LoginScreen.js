@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import BottomNav from '../components/BottomNav';
@@ -9,6 +9,22 @@ const LoginScreen = () => {
     const { login, error } = useContext(AuthContext);
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [oauthError, setOauthError] = useState(null);
+
+    // Check for OAuth errors on mount
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const errorParam = params.get('error');
+        if (errorParam) {
+            const errorMessages = {
+                'authentication_failed': 'Google authentication failed. Please try again.',
+                'server_error': 'Server error during authentication. Please try again.'
+            };
+            setOauthError(errorMessages[errorParam] || 'Authentication failed');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -75,7 +91,7 @@ const LoginScreen = () => {
                             </div>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                        {(error || oauthError) && <p className="text-red-500 text-sm text-center">{error || oauthError}</p>}
 
                         <div>
                             <button

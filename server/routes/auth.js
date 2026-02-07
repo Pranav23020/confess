@@ -114,20 +114,31 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // @access  Public
 router.get(
     '/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
+    passport.authenticate('google', { session: false }),
     (req, res) => {
-        const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
-            expiresIn: JWT_EXPIRE
-        });
+        try {
+            if (!req.user) {
+                const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+                return res.redirect(`${frontendURL}/login?error=authentication_failed`);
+            }
 
-        // Set cookie
-        const isProduction = process.env.NODE_ENV === 'production';
-        const cookieOptions = getCookieOptions(isProduction);
-        res.cookie('token', token, cookieOptions);
+            const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
+                expiresIn: JWT_EXPIRE
+            });
 
-        // Redirect to frontend with oauth flag to trigger refetch
-        const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendURL}/?oauth=true`);
+            // Set cookie
+            const isProduction = process.env.NODE_ENV === 'production';
+            const cookieOptions = getCookieOptions(isProduction);
+            res.cookie('token', token, cookieOptions);
+
+            // Redirect to frontend with oauth flag to trigger refetch
+            const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+            res.redirect(`${frontendURL}/?oauth=true`);
+        } catch (err) {
+            console.error('Google callback error:', err);
+            const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+            res.redirect(`${frontendURL}/login?error=server_error`);
+        }
     }
 );
 
