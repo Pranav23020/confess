@@ -12,14 +12,12 @@ const ResetPasswordScreen = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [message, setMessage] = useState('');
 
     const hasToken = useMemo(() => Boolean(token), [token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setMessage('');
 
         if (!hasToken) {
             setError('Invalid or missing reset token. Please request a new link.');
@@ -38,7 +36,6 @@ const ResetPasswordScreen = () => {
                 confirmPassword 
             });
             const responseMessage = data?.message || 'Password reset successful. You can now log in.';
-            setMessage(responseMessage);
             showToast(responseMessage, 'success');
         } catch (err) {
             const errorMessage = err.response?.data?.error || 'Failed to reset password.';
@@ -103,7 +100,6 @@ const ResetPasswordScreen = () => {
                             </div>
                         </div>
 
-                        {message && <p className="text-emerald-400 text-xs sm:text-sm text-center">{message}</p>}
                         {error && <p className="text-red-500 text-xs sm:text-sm text-center">{error}</p>}
 
                         <div className="space-y-3">
