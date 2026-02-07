@@ -76,6 +76,12 @@ const LoginScreen = () => {
                                 <label htmlFor="password" className="block text-xs sm:text-sm font-medium leading-6 text-gray-300">
                                     Password
                                 </label>
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                                >
+                                    Forgot password?
+                                </Link>
                             </div>
                             <div className="mt-2">
                                 <input

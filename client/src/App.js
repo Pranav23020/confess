@@ -10,6 +10,8 @@ import LimitReachedScreen from './screens/LimitReachedScreen';
 import ReportScreen from './screens/ReportScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import DesktopNav from './components/DesktopNav';
@@ -25,6 +27,8 @@ function App() {
               <Route path="/" element={<HomeScreen />} />
               <Route path="/login" element={<LoginScreen />} />
               <Route path="/register" element={<RegisterScreen />} />
+              <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordScreen />} />
               <Route path="/new" element={<NewConfessionScreen />} />
               <Route path="/confession/:id" element={<ConfessionDetailScreen />} />
               <Route path="/explore" element={<ExploreScreen />} />
