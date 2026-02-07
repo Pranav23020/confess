@@ -10,8 +10,6 @@ import LimitReachedScreen from './screens/LimitReachedScreen';
 import ReportScreen from './screens/ReportScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
-import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
-import TermsOfServiceScreen from './screens/TermsOfServiceScreen';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import DesktopNav from './components/DesktopNav';
