@@ -38,6 +38,15 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cookieParser()); // Parse cookies
+
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('Cookies:', req.cookies ? Object.keys(req.cookies) : 'none');
+  next();
+});
+
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim())
@@ -46,6 +55,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Log CORS headers being sent
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('CORS - Allowing origin:', origin);
+  next();
+});
+
 app.use(express.json({ limit: '10kb' }));
 
 // Session configuration
