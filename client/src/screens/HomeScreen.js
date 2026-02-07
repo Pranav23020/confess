@@ -423,14 +423,12 @@ const HomeScreen = () => {
             to="/new"
             className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
           >
-            <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:rotate-90 transition-transform duration-300">add</span>
           </Link>
         ) : (
           <Link
             to="/limit-reached"
             className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-slate-400 dark:bg-slate-600 rounded-2xl shadow-lg shadow-slate-400/40 text-white transition-all duration-300 hover:scale-110 active:scale-95"
           >
-            <span className="material-symbols-outlined text-2xl sm:text-3xl">block</span>
           </Link>
         )}
       </div>
