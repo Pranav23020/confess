@@ -420,50 +420,51 @@ const ProfileScreen = () => {
               </div>
 
               {/* Install App */}
-              <div className="bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-2xl p-5 md:p-6 border border-primary/20">
-                <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  📱 Install App on Your Phone
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
+                <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-3">
+                  Install App
                 </h3>
-                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-5">
-                  Get quick access to the app directly on your home screen
+                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Get quick access to the app on your home screen
                 </p>
-
-                {/* Install Button (shown when available) */}
-                {showInstallPrompt && deferredPrompt && (
-                  <button
-                    onClick={handleInstallApp}
-                    className="w-full px-4 py-3 mb-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">download</span>
-                    Install App Now
-                  </button>
-                )}
-
-                {/* Always Visible Instructions */}
-                <div className="space-y-4">
-                  {/* iOS Instructions */}
-                  <div className="pb-4 border-b border-slate-200 dark:border-white/5">
-                    <p className="font-semibold text-slate-900 dark:text-white text-sm mb-3">📲 For iPhone (iOS):</p>
-                    <ol className="list-decimal list-inside space-y-2 text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                      <li>Open this page in Safari or your browser</li>
-                      <li>Tap the <strong>Share</strong> button (arrow pointing up at the bottom)</li>
-                      <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                      <li>Choose a name and tap <strong>"Add"</strong></li>
-                      <li>The app will appear on your home screen</li>
-                    </ol>
-                  </div>
-
-                  {/* Android Instructions */}
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-white text-sm mb-3">🤖 For Android Phone:</p>
-                    <ol className="list-decimal list-inside space-y-2 text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                      <li>Open this page in Chrome or your default browser</li>
-                      <li>Tap the <strong>Menu</strong> button (three vertical dots at top right)</li>
-                      <li>Select <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong></li>
-                      <li>Follow the prompts and confirm installation</li>
-                      <li>The app will appear on your home screen</li>
-                    </ol>
-                  </div>
+                <div className="space-y-3">
+                  {showInstallPrompt && deferredPrompt && (
+                    <button
+                      onClick={handleInstallApp}
+                      className="w-full px-4 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">download</span>
+                        Install App Now
+                      </span>
+                    </button>
+                  )}
+                  <details className="cursor-pointer group">
+                    <summary className="text-sm text-primary hover:text-primary/80 font-medium transition-colors list-none">
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                        Manual Installation Instructions
+                      </span>
+                    </summary>
+                    <div className="mt-3 space-y-3 ml-6">
+                      <div>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-2">For iOS:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-600 dark:text-slate-400 ml-2">
+                          <li>Tap Share button (arrow pointing up)</li>
+                          <li>Select "Add to Home Screen"</li>
+                          <li>Name the shortcut and tap Add</li>
+                        </ol>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 mb-2">For Android:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-600 dark:text-slate-400 ml-2">
+                          <li>Tap the menu (three dots)</li>
+                          <li>Select "Install app" or "Add to Home Screen"</li>
+                          <li>Confirm the installation</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </div>
 
