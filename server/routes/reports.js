@@ -14,7 +14,7 @@ const REPORT_THRESHOLD = 5; // Hide content after this many reports
  */
 router.post('/', reportLimiter, async (req, res) => {
   try {
-    const { targetType, targetId, reason } = req.body;
+    const { targetType, targetId, reason, description } = req.body;
     const deviceHash = generateDeviceHash(req);
     
     // Validate input
@@ -41,7 +41,8 @@ router.post('/', reportLimiter, async (req, res) => {
       targetType,
       targetId,
       deviceHash,
-      reason: reason || 'other'
+      reason: reason || 'other',
+      description: description || ''
     });
     
     await report.save();
@@ -54,10 +55,13 @@ router.post('/', reportLimiter, async (req, res) => {
       ...(reportCount >= REPORT_THRESHOLD && { isHidden: true })
     });
     
+    const action = reportCount >= REPORT_THRESHOLD ? 'hidden' : 'queued';
+
     res.json({
       success: true,
       message: 'Report submitted successfully',
-      hidden: reportCount >= REPORT_THRESHOLD
+      hidden: reportCount >= REPORT_THRESHOLD,
+      action
     });
     
   } catch (error) {

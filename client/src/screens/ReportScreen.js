@@ -10,6 +10,7 @@ const ReportScreen = () => {
   const [submitting, setSubmitting] = React.useState(false);
   const [reason, setReason] = React.useState('spam');
   const [description, setDescription] = React.useState('');
+  const [reportResult, setReportResult] = React.useState(null);
 
   const reasons = [
     { value: 'spam', label: 'Spam' },
@@ -28,9 +29,9 @@ const ReportScreen = () => {
   const handleReport = async () => {
     try {
       setSubmitting(true);
-      await reportsAPI.create(type, id, reason, description);
-      showToast('Report submitted successfully');
-      navigate(-1);
+      const response = await reportsAPI.create(type, id, reason, description);
+      const action = response?.data?.action || (response?.data?.hidden ? 'hidden' : 'queued');
+      setReportResult(action);
     } catch (err) {
       showToast(err.response?.data?.error?.message || 'Failed to submit report', 'error');
       setSubmitting(false);
@@ -59,56 +60,62 @@ const ReportScreen = () => {
             </div>
             <div className="flex flex-col gap-2">
               <h2 className="text-gray-900 dark:text-white text-xl font-bold leading-tight tracking-tight">
-                Report this {type}?
+                {reportResult ? 'Report received' : `Report this ${type}?`}
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed">
-                Help us keep this space safe. This content will be hidden from your feed immediately.
+                {reportResult
+                  ? (reportResult === 'hidden'
+                    ? 'Action taken: This content has been hidden from public feeds.'
+                    : 'Action taken: Your report has been added to the review queue.')
+                  : 'Help us keep this space safe. We will review and may hide content after enough reports.'}
               </p>
             </div>
           </div>
 
-          {/* Reason Selection */}
-          <div className="px-6 pb-4">
-            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Reason</label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {reasons.map((r) => (
-                <button
-                  key={r.value}
-                  onClick={() => setReason(r.value)}
-                  className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-colors ${reason === r.value
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
-                    }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+          {!reportResult && (
+            <div className="px-6 pb-4">
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Reason</label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {reasons.map((r) => (
+                  <button
+                    key={r.value}
+                    onClick={() => setReason(r.value)}
+                    className={`text-xs font-semibold px-3 py-2 rounded-xl border transition-colors ${reason === r.value
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
+                      }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add more details (optional)"
+                maxLength={200}
+                className="mt-3 w-full px-4 py-3 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 text-sm text-slate-800 dark:text-white"
+              />
             </div>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add more details (optional)"
-              maxLength={200}
-              className="mt-3 w-full px-4 py-3 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-white/10 text-sm text-slate-800 dark:text-white"
-            />
-          </div>
+          )}
 
-          {/* Action Buttons */}
           <div className="p-4 grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate(-1)}
               disabled={submitting}
               className="flex w-full cursor-pointer items-center justify-center rounded-xl h-12 px-4 bg-transparent hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 text-base font-bold transition-colors duration-200 disabled:opacity-50"
             >
-              Cancel
+              {reportResult ? 'Done' : 'Cancel'}
             </button>
-            <button
-              onClick={handleReport}
-              disabled={submitting}
-              className="flex w-full cursor-pointer items-center justify-center rounded-xl h-12 px-4 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-base font-bold transition-colors duration-200 disabled:opacity-50"
-            >
-              {submitting ? 'Reporting...' : 'Report'}
-            </button>
+            {!reportResult && (
+              <button
+                onClick={handleReport}
+                disabled={submitting}
+                className="flex w-full cursor-pointer items-center justify-center rounded-xl h-12 px-4 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-base font-bold transition-colors duration-200 disabled:opacity-50"
+              >
+                {submitting ? 'Reporting...' : 'Report'}
+              </button>
+            )}
           </div>
           <div className="h-2"></div>
         </div>
