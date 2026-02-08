@@ -71,6 +71,8 @@ export const userAPI = {
 export const reportsAPI = {
   create: (targetType, targetId, reason = 'other', description = '') =>
     api.post('/reports', { targetType, targetId, reason, description }),
+  getMyReports: () =>
+    api.get('/reports/my')
 };
 
 // Likes API

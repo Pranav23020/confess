@@ -419,6 +419,24 @@ const ProfileScreen = () => {
                 </div>
               </div>
 
+              {/* Reports History */}
+              <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white">
+                      Content Moderation
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">View your submitted reports and their status</p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/reports-history')}
+                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-xs md:text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                  >
+                    View Reports
+                  </button>
+                </div>
+              </div>
+
               {/* Install App */}
               <div className="bg-white dark:bg-surface-dark rounded-2xl p-5 md:p-6 border border-slate-200 dark:border-white/5">
                 <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white mb-3">

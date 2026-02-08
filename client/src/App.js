@@ -8,6 +8,7 @@ import HashtagExploreScreen from './screens/HashtagExploreScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LimitReachedScreen from './screens/LimitReachedScreen';
 import ReportScreen from './screens/ReportScreen';
+import ReportsHistoryScreen from './screens/ReportsHistoryScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
@@ -36,6 +37,7 @@ function App() {
               <Route path="/profile" element={<ProfileScreen />} />
               <Route path="/limit-reached" element={<LimitReachedScreen />} />
               <Route path="/report/:id/:type" element={<ReportScreen />} />
+              <Route path="/reports-history" element={<ReportsHistoryScreen />} />
             </Routes>
           </div>
         </Router>

@@ -73,4 +73,57 @@ router.post('/', reportLimiter, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/reports/my
+ * Get report status history for current device
+ */
+router.get('/my', async (req, res) => {
+  try {
+    const deviceHash = generateDeviceHash(req);
+    const reports = await Report.find({ deviceHash }).sort({ createdAt: -1 }).lean();
+
+    const confessionIds = reports
+      .filter((report) => report.targetType === 'confession')
+      .map((report) => report.targetId);
+    const replyIds = reports
+      .filter((report) => report.targetType === 'reply')
+      .map((report) => report.targetId);
+
+    const [confessions, replies] = await Promise.all([
+      confessionIds.length
+        ? Confession.find({ _id: { $in: confessionIds } }).select('_id isHidden').lean()
+        : Promise.resolve([]),
+      replyIds.length
+        ? Reply.find({ _id: { $in: replyIds } }).select('_id isHidden').lean()
+        : Promise.resolve([])
+    ]);
+
+    const confessionMap = new Map(confessions.map((item) => [String(item._id), item]));
+    const replyMap = new Map(replies.map((item) => [String(item._id), item]));
+
+    const enriched = reports.map((report) => {
+      const lookup = report.targetType === 'confession' ? confessionMap : replyMap;
+      const target = lookup.get(String(report.targetId));
+      const targetExists = Boolean(target);
+      const action = targetExists && target.isHidden ? 'hidden' : 'queued';
+
+      return {
+        id: report._id,
+        targetType: report.targetType,
+        targetId: report.targetId,
+        reason: report.reason,
+        description: report.description,
+        createdAt: report.createdAt,
+        action,
+        targetExists
+      };
+    });
+
+    res.json({ success: true, reports: enriched });
+  } catch (error) {
+    console.error('Error fetching report history:', error);
+    res.status(500).json({ error: { message: 'Failed to load report history' } });
+  }
+});
+
 module.exports = router;
