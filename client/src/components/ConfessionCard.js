@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LikeButton from './LikeButton';
 import ShareTemplateModal from './ShareTemplateModal';
@@ -20,7 +20,13 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showCenterHeart, setShowCenterHeart] = useState(false);
   const imageScrollRef = useRef(null);
+  
+  // Double-tap detection refs
+  const tapCountRef = useRef(0);
+  const tapTimeoutRef = useRef(null);
+  const lastTapTimeRef = useRef(0);
 
   const getGradientColors = (index) => {
     const gradients = [
@@ -52,13 +58,71 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
     return map[value] || 'Other';
   };
 
-  const handleLike = () => {
+  const handleLike = useCallback(() => {
     if (!user) {
       navigate('/login');
       return;
     }
     toggleLike();
-  };
+  }, [user, navigate, toggleLike]);
+
+  /**
+   * Handle double-tap on card content (Instagram-style)
+   * Double-tap to like, but only if not already liked
+   */
+  const handleDoubleTap = useCallback((e) => {
+    // Don't trigger if clicking buttons or interactive elements
+    const target = e.target;
+    if (
+      target.tagName === 'BUTTON' ||
+      target.closest('button') ||
+      target.closest('.no-double-tap')
+    ) {
+      return;
+    }
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Only like if not already liked (Instagram behavior)
+    if (!liked && !isLoading) {
+      // Show center heart animation
+      setShowCenterHeart(true);
+      setTimeout(() => setShowCenterHeart(false), 800);
+
+      // Trigger like
+      toggleLike();
+    }
+  }, [user, liked, isLoading, navigate, toggleLike]);
+
+  /**
+   * Touch/Click handler for double-tap detection
+   */
+  const handleContentTap = useCallback((e) => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTimeRef.current;
+
+    // Double-tap detected (within 300ms)
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDoubleTap(e);
+      lastTapTimeRef.current = 0; // Reset
+    } else {
+      lastTapTimeRef.current = now;
+    }
+  }, [handleDoubleTap]);
+
+  /**
+   * Desktop double-click handler
+   */
+  const handleDoubleClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleDoubleTap(e);
+  }, [handleDoubleTap]);
 
   const getTimeAgo = (date) => {
     const now = new Date();
@@ -98,11 +162,33 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   };
 
   return (
-    <article className="relative group cursor-pointer" onClick={() => navigate(`/confession/${confession._id}`)}>
+    <article className="relative group">
       {/* Outer border glow - more subtle and precise */}
       <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[24px] opacity-40 group-hover:opacity-100 transition-opacity duration-700 blur-[2px]`}></div>
 
-      <div className="relative bg-white dark:bg-surface-dark rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-3 md:p-6 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/5">
+      <div 
+        className="relative bg-white dark:bg-surface-dark rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-3 md:p-6 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/5 cursor-pointer double-tap-container"
+        onClick={(e) => {
+          // Only navigate if not double-tapping and not clicking buttons
+          const target = e.target;
+          if (
+            !target.closest('button') &&
+            !target.closest('.no-double-tap')
+          ) {
+            navigate(`/confession/${confession._id}`);
+          }
+        }}
+        onDoubleClick={handleDoubleClick}
+      >
+        {/* Instagram-style center heart animation */}
+        {showCenterHeart && (
+          <div className="instagram-large-heart instagram-center-heart">
+            <span className="material-symbols-outlined filled" style={{ fontSize: 'inherit' }}>
+              favorite
+            </span>
+          </div>
+        )}
+
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700"></div>
 
@@ -122,7 +208,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
                 e.stopPropagation();
                 navigate(`/report/${confession._id}/confession`);
               }}
-              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
+              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 no-double-tap"
             >
               <span className="material-symbols-outlined text-xl">flag</span>
             </button>
@@ -139,9 +225,16 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
             )}
           </div>
 
-          <p className="text-sm sm:text-base md:text-lg font-bold leading-tight sm:leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-3 sm:mb-4 [text-wrap:balance]">
-            {confession.text.replace(/#[\w]+/gi, '').trim()}
-          </p>
+          {/* Double-tap area for text content */}
+          <div 
+            onClick={handleContentTap}
+            onDoubleClick={handleDoubleClick}
+            className="cursor-pointer select-none"
+          >
+            <p className="text-sm sm:text-base md:text-lg font-bold leading-tight sm:leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-3 sm:mb-4 [text-wrap:balance]">
+              {confession.text.replace(/#[\w]+/gi, '').trim()}
+            </p>
+          </div>
 
           {/* Hashtags Display - Only visible to creator */}
           {user && confession.userId === user._id && confession.hashtags && confession.hashtags.length > 0 && (
@@ -150,27 +243,32 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
             </div>
           )}
 
+          {/* Double-tap area for images */}
           {images.length > 0 && (
             <div className="mb-3 sm:mb-4 relative group/images">
               <div
                 ref={imageScrollRef}
                 className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar rounded-lg sm:rounded-2xl"
                 onScroll={handleImageScroll}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContentTap(e);
+                }}
+                onDoubleClick={handleDoubleClick}
               >
                 {images.map((img, index) => (
                   <div key={`${img}-${index}`} className="snap-center min-w-full">
                     <img
                       src={getImageUrl(img)}
                       alt={`Confession ${index + 1}`}
-                      className="w-full rounded-lg sm:rounded-2xl object-cover max-h-32 sm:max-h-48 border border-white/5 shadow-lg shadow-black/20"
+                      className="w-full rounded-lg sm:rounded-2xl object-cover max-h-32 sm:max-h-48 border border-white/5 shadow-lg shadow-black/20 select-none pointer-events-none"
                       draggable={false}
                     />
                   </div>
                 ))}
               </div>
               {images.length > 1 && (
-                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 px-2 sm:px-3 py-1 text-[9px] sm:text-[11px] font-black text-white bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-xl">
+                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 px-2 sm:px-3 py-1 text-[9px] sm:text-[11px] font-black text-white bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-none">
                   {currentImageIndex + 1} / {images.length}
                 </div>
               )}
@@ -178,7 +276,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-slate-100 dark:border-white/5 relative z-10">
+        <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-slate-100 dark:border-white/5 relative z-10 no-double-tap">
           <div className="flex gap-1 sm:gap-2">
             <LikeButton
               liked={liked}
