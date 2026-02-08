@@ -1,16 +1,23 @@
 import React, { useState, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { likesAPI } from '../api';
+import LikeButton from './LikeButton';
 import ShareTemplateModal from './ShareTemplateModal';
 import HashtagBadges from './HashtagBadges';
+import { useLike } from '../hooks/useLike';
 import { AuthContext } from '../context/AuthContext';
 
 const ConfessionCard = ({ confession, showExpiry = false }) => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(confession.likeCount || 0);
-  const [liking, setLiking] = useState(false);
+  
+  // Use the custom hook for like management with optimistic updates
+  const {
+    liked,
+    likeCount,
+    isLoading,
+    toggleLike
+  } = useLike(confession._id, confession.likeCount || 0, false);
+  
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageScrollRef = useRef(null);
@@ -45,29 +52,12 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
     return map[value] || 'Other';
   };
 
-  const handleLike = async (e) => {
-    e.stopPropagation();
-
+  const handleLike = () => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    if (liking) return;
-
-    try {
-      setLiking(true);
-      const response = await likesAPI.toggle(confession._id);
-      setLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (err) {
-      console.error('Failed to toggle like:', err);
-      if (err.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setLiking(false);
-    }
+    toggleLike();
   };
 
   const getTimeAgo = (date) => {
@@ -190,17 +180,15 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
 
         <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-slate-100 dark:border-white/5 relative z-10">
           <div className="flex gap-1 sm:gap-2">
-            <button
-              onClick={handleLike}
-              disabled={liking}
-              className={`group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs ring-1 ring-inset ${liked
-                ? 'bg-red-500 text-white ring-red-500 shadow-lg shadow-red-500/30'
-                : 'text-slate-400 ring-transparent hover:bg-slate-100 dark:hover:bg-white/5 hover:text-red-500'
-                }`}
-            >
-              <span className={`material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:scale-110 ${liked ? 'filled' : ''}`}>favorite</span>
-              <span className="hidden sm:inline">{likeCount || 0}</span>
-            </button>
+            <LikeButton
+              liked={liked}
+              likeCount={likeCount}
+              onLike={handleLike}
+              isLoading={isLoading}
+              compact={true}
+              onNavigateLogin={() => navigate('/login')}
+              isAuthenticated={!!user}
+            />
             <button className="group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary">
               <span className="material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:scale-110">forum</span>
               <span className="hidden sm:inline">{confession.replyCount || 0}</span>

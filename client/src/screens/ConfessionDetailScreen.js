@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
+import LikeButton from '../components/LikeButton';
 import ReplyBubble from '../components/ReplyBubble';
 import { confessionsAPI, repliesAPI, likesAPI, pollsAPI } from '../api';
 import ShareTemplateModal from '../components/ShareTemplateModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HashtagBadges from '../components/HashtagBadges';
+import { useLike } from '../hooks/useLike';
 import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -19,9 +21,10 @@ const ConfessionDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState(null);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [liking, setLiking] = useState(false);
+  
+  // Use the custom hook for like management
+  const { liked, likeCount, isLoading: liking, toggleLike } = useLike(id, 0, false);
+  
   const [showShareModal, setShowShareModal] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [pollResults, setPollResults] = useState([]);
@@ -55,11 +58,6 @@ const ConfessionDetailScreen = () => {
       const response = await confessionsAPI.getById(id);
       setConfession(response.data.confession);
       setReplies(response.data.replies);
-      setLikeCount(response.data.confession.likeCount || 0);
-
-      // Check if user has liked this confession
-      const likeStatus = await likesAPI.check(id);
-      setLiked(likeStatus.data.liked);
 
       if (response.data.confession.isPoll) {
         await fetchPollResults();
@@ -109,27 +107,12 @@ const ConfessionDetailScreen = () => {
     }
   };
 
-  const handleLike = async () => {
+  const handleLike = () => {
     if (!user) {
       navigate('/login');
       return;
     }
-
-    if (liking) return;
-
-    try {
-      setLiking(true);
-      const response = await likesAPI.toggle(id);
-      setLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
-    } catch (err) {
-      console.error('Failed to toggle like:', err);
-      if (err.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setLiking(false);
-    }
+    toggleLike();
   };
 
   const handlePostReply = async () => {
@@ -376,15 +359,15 @@ const ConfessionDetailScreen = () => {
               )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-3">
-                  <button
-                    onClick={handleLike}
-                    disabled={liking}
-                    className={`transition-colors flex items-center gap-1 text-sm font-semibold ${liked ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-500'
-                      }`}
-                  >
-                    <span className={`material-symbols-outlined text-[20px] ${liked ? 'filled' : ''}`}>favorite</span>
-                    {likeCount || 0}
-                  </button>
+                  <LikeButton
+                    liked={liked}
+                    likeCount={likeCount}
+                    onLike={handleLike}
+                    isLoading={liking}
+                    compact={false}
+                    onNavigateLogin={() => navigate('/login')}
+                    isAuthenticated={!!user}
+                  />
                   <div className="text-slate-400 flex items-center gap-1 text-sm font-semibold">
                     <span className="material-symbols-outlined text-[20px]">chat_bubble</span>
                     {confession.replyCount || 0}
@@ -409,7 +392,7 @@ const ConfessionDetailScreen = () => {
 
         {/* Replies Section */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-slate-500 dark:text-gray-400 mb-4 px-1">
+          <h3 className="text-sm font-semibold text-slate-500 dark:text-gray-400 mb-4 px-1">>
             Replies ({replies.length})
           </h3>
           {replies.length === 0 ? (

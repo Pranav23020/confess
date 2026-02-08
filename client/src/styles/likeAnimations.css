@@ -1,0 +1,164 @@
+/* Like Button Animations */
+
+/**
+ * Heart burst/pop animation - creates particles that float up and fade
+ */
+@keyframes heartBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(0);
+  }
+}
+
+/**
+ * Heart scale animation - smooth grow/shrink with bounce
+ */
+@keyframes heartScale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/**
+ * Like button fill animation
+ */
+@keyframes fillHeart {
+  0% {
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0.3));
+  }
+}
+
+/**
+ * Counter increment animation
+ */
+@keyframes likeCountPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-4px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/**
+ * Unlike unscale animation
+ */
+@keyframes unlikeScale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.85);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/**
+ * Floating heart particles from like action
+ */
+@keyframes floatUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-60px) translateX(var(--drift, 0)) scale(0.5);
+  }
+}
+
+/**
+ * Heart icon glow on like
+ */
+@keyframes heartGlow {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+  }
+  100% {
+    filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
+  }
+}
+
+/* Utility classes */
+
+.like-heart-burst {
+  animation: heartBurst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: absolute;
+  pointer-events: none;
+  font-size: 24px;
+}
+
+.like-heart-scale {
+  animation: heartScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.like-heart-fill {
+  animation: fillHeart 0.6s ease-out;
+}
+
+.like-count-pop {
+  animation: likeCountPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-block;
+}
+
+.like-button-active {
+  animation: heartGlow 0.6s ease-out;
+}
+
+.float-up {
+  animation: floatUp 1s ease-out forwards;
+}
+
+/* Smooth transitions for button states */
+.like-button-transition {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Disable animations on reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .like-heart-burst,
+  .like-heart-scale,
+  .like-heart-fill,
+  .like-count-pop,
+  .like-button-active,
+  .float-up {
+    animation: none !important;
+  }
+
+  .like-button-transition {
+    transition: none !important;
+  }
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .like-button-mobile-feedback {
+    active-scale: 0.95;
+  }
+}
