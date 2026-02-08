@@ -54,6 +54,29 @@ const LikeButton = ({
   const GLOW_ANIMATION_DURATION = 600; // ms - duration of heart glow animation
 
   /**
+   * Create floating heart particles from the button
+   * Creates 3-5 hearts that float upward with different trajectories
+   */
+  const createFloatingHearts = useCallback(() => {
+    const heartCount = Math.random() < 0.5 ? 3 : 4;
+    const hearts = Array.from({ length: heartCount }, (_, i) => ({
+      id: `${Date.now()}-${i}`,
+      delay: i * 80, // Stagger animation
+      duration: 800 + Math.random() * 400,
+      drift: (Math.random() - 0.5) * 40 // Random horizontal drift
+    }));
+
+    setFloatingHearts((prev) => [...prev, ...hearts]);
+
+    // Clean up after animation completes
+    setTimeout(() => {
+      setFloatingHearts((prev) =>
+        prev.filter((h) => !hearts.find((nh) => nh.id === h.id))
+      );
+    }, 1200);
+  }, []);
+
+  /**
    * Handle single click/tap
    * Single tap toggles the like
    */
@@ -176,29 +199,6 @@ const LikeButton = ({
   );
 
   const lastClickTimeRef = useRef(0);
-
-  /**
-   * Create floating heart particles from the button
-   * Creates 3-5 hearts that float upward with different trajectories
-   */
-  const createFloatingHearts = useCallback(() => {
-    const heartCount = Math.random() < 0.5 ? 3 : 4;
-    const hearts = Array.from({ length: heartCount }, (_, i) => ({
-      id: `${Date.now()}-${i}`,
-      delay: i * 80, // Stagger animation
-      duration: 800 + Math.random() * 400,
-      drift: (Math.random() - 0.5) * 40 // Random horizontal drift
-    }));
-
-    setFloatingHearts((prev) => [...prev, ...hearts]);
-
-    // Clean up after animation completes
-    setTimeout(() => {
-      setFloatingHearts((prev) =>
-        prev.filter((h) => !hearts.find((nh) => nh.id === h.id))
-      );
-    }, 1200);
-  }, []);
 
   /**
    * Animate like count change with pop animation
