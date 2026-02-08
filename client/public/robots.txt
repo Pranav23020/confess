@@ -1,4 +1,17 @@
 User-agent: *
 Allow: /
+Allow: /confession/
+Allow: /explore
+Allow: /hashtags/
+Disallow: /login
+Disallow: /register
+Disallow: /admin
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
 
 Sitemap: https://www.anonconfess.in/sitemap.xml
