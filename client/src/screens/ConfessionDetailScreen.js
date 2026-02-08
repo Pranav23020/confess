@@ -77,7 +77,6 @@ const ConfessionDetailScreen = () => {
 
     const handleEngagement = (data) => {
       if (data.confessionId === id) {
-        setLikeCount(data.likeCount);
         setConfession(prev => prev ? { ...prev, replyCount: data.replyCount } : prev);
       }
     };
