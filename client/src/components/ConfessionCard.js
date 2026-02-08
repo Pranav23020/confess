@@ -17,7 +17,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
     likeCount,
     isLoading,
     toggleLike
-  } = useLike(confession._id, confession.likeCount || 0, false);
+  } = useLike(confession._id, confession.likeCount || 0, confession.liked || false);
   
   const [showShareModal, setShowShareModal] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);

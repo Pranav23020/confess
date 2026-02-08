@@ -28,15 +28,42 @@ export const useLike = (
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   // Refs for strict request control
   const requestInFlightRef = useRef(false);
   const lastRequestTimeRef = useRef(0);
   const pendingRequestRef = useRef(null);
   const isMountedRef = useRef(true);
+  const hasInitialized = useRef(false);
 
   // Store previous state for rollback on error
   const previousStateRef = useRef({ liked: initialLiked, likeCount: initialLikeCount });
+
+  // Fetch initial liked status from server
+  useEffect(() => {
+    const fetchLikedStatus = async () => {
+      if (hasInitialized.current || !confessionId) return;
+      
+      hasInitialized.current = true;
+      
+      try {
+        const response = await likesAPI.check(confessionId);
+        if (isMountedRef.current) {
+          setLiked(response.data.liked);
+          setLikeCount(response.data.likeCount || initialLikeCount);
+        }
+      } catch (err) {
+        console.error('Failed to fetch like status:', err);
+      } finally {
+        if (isMountedRef.current) {
+          setInitializing(false);
+        }
+      }
+    };
+
+    fetchLikedStatus();
+  }, [confessionId, initialLikeCount]);
 
   /**
    * Strict debounced toggle like with optimistic updates
@@ -168,7 +195,7 @@ export const useLike = (
     // State
     liked,
     likeCount,
-    isLoading,
+    isLoading: isLoading || initializing,
     error,
 
     // Actions

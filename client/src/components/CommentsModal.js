@@ -15,13 +15,13 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch replies when modal opens
+  // Fetch replies when modal opens or when reply count changes
   useEffect(() => {
     if (isOpen && confession?._id) {
       fetchReplies();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, confession?._id]);
+  }, [isOpen, confession?._id, confession?.replyCount]);
 
   const fetchReplies = async () => {
     try {
@@ -82,12 +82,12 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-modal-fade-in"
         onClick={onClose}
       />
 
       {/* Modal - Instagram Style Bottom Sheet */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-surface-dark rounded-t-3xl shadow-2xl animate-slide-up max-h-[75vh] flex flex-col">
+      <div className="fixed inset-x-0 bottom-0 z-[101] bg-white dark:bg-surface-dark rounded-t-3xl shadow-2xl animate-modal-slide-up max-h-[75vh] flex flex-col">
         {/* Handle Bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" />
@@ -129,7 +129,7 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
 
                   {/* Comment Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-900 dark:text-white">
                           Anonymous
@@ -143,11 +143,6 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
                           </span>
                         </div>
                       </div>
-                      
-                      {/* Like Button */}
-                      <button className="text-slate-400 hover:text-red-500 transition-colors p-1">
-                        <span className="material-symbols-outlined text-lg">favorite</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -189,35 +184,6 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-      `}</style>
     </>
   );
 };
