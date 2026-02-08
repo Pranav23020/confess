@@ -14,6 +14,7 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
   const [replyText, setReplyText] = useState('');
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Fetch replies when modal opens or when reply count changes
   useEffect(() => {
@@ -26,10 +27,13 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
   const fetchReplies = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await repliesAPI.getByConfessionId(confession._id);
       setReplies(response.data || []);
     } catch (err) {
       console.error('Failed to load comments:', err);
+      setError(err.response?.data?.error?.message || 'Failed to load comments. Please try again.');
+      setReplies([]);
     } finally {
       setLoading(false);
     }
@@ -111,6 +115,17 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <span className="material-symbols-outlined text-5xl mb-3 opacity-50">error_outline</span>
+              <p className="text-sm text-center mb-4">{error}</p>
+              <button
+                onClick={fetchReplies}
+                className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm font-semibold"
+              >
+                Try Again
+              </button>
             </div>
           ) : replies.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
