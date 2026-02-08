@@ -99,7 +99,7 @@ const LikeButton = ({
     setTimeout(() => {
       onLike();
     }, DOUBLE_TAP_TRIGGER_DELAY);
-  }, [liked, isLoading, onLike, isAuthenticated, onNavigateLogin]);
+  }, [liked, isLoading, onLike, isAuthenticated, onNavigateLogin, createFloatingHearts]);
 
   /**
    * Detect double-tap on touch devices

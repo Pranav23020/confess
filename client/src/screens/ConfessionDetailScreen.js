@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import LikeButton from '../components/LikeButton';
 import ReplyBubble from '../components/ReplyBubble';
-import { confessionsAPI, repliesAPI, likesAPI, pollsAPI } from '../api';
+import { confessionsAPI, repliesAPI, pollsAPI } from '../api';
 import ShareTemplateModal from '../components/ShareTemplateModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import HashtagBadges from '../components/HashtagBadges';
