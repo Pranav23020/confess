@@ -23,9 +23,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   const [showCenterHeart, setShowCenterHeart] = useState(false);
   const imageScrollRef = useRef(null);
   
-  // Double-tap detection refs
-  const tapCountRef = useRef(0);
-  const tapTimeoutRef = useRef(null);
+  // Double-tap detection ref
   const lastTapTimeRef = useRef(0);
 
   const getGradientColors = (index) => {
