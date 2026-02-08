@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useContext } from 'react';
 import { likesAPI } from '../api';
+import { LikeCacheContext } from '../context/LikeCacheContext';
 
 /**
  * Custom hook for managing like state and actions
@@ -23,6 +24,8 @@ export const useLike = (
   initialLiked = false,
   onLikeChange = null
 ) => {
+  const likeCache = useContext(LikeCacheContext);
+  
   // State management
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -40,7 +43,7 @@ export const useLike = (
   // Store previous state for rollback on error
   const previousStateRef = useRef({ liked: initialLiked, likeCount: initialLikeCount });
 
-  // Fetch initial liked status from server
+  // Fetch initial liked status from server or cache
   useEffect(() => {
     const fetchLikedStatus = async () => {
       if (hasInitialized.current || !confessionId) return;
@@ -48,10 +51,32 @@ export const useLike = (
       hasInitialized.current = true;
       
       try {
+        // Check cache first for instant load
+        if (likeCache) {
+          const cached = likeCache.getCachedLikeStatus(confessionId);
+          if (cached) {
+            if (isMountedRef.current) {
+              setLiked(cached.liked);
+              setLikeCount(cached.likeCount);
+              setInitializing(false);
+              return; // Use cached data, don't make API call
+            }
+          }
+        }
+
+        // If not in cache, fetch from server
         const response = await likesAPI.check(confessionId);
         if (isMountedRef.current) {
-          setLiked(response.data.liked);
-          setLikeCount(response.data.likeCount || initialLikeCount);
+          const liked = response.data.liked;
+          const likeCount = response.data.likeCount || initialLikeCount;
+          
+          // Store in cache for future use
+          if (likeCache) {
+            likeCache.setCachedLikeStatus(confessionId, liked, likeCount);
+          }
+          
+          setLiked(liked);
+          setLikeCount(likeCount);
         }
       } catch (err) {
         console.error('Failed to fetch like status:', err);
@@ -63,7 +88,7 @@ export const useLike = (
     };
 
     fetchLikedStatus();
-  }, [confessionId, initialLikeCount]);
+  }, [confessionId, initialLikeCount, likeCache]);
 
   /**
    * Strict debounced toggle like with optimistic updates
@@ -125,6 +150,11 @@ export const useLike = (
       // Update UI with server response (use server truth)
       setLiked(response.data.liked);
       setLikeCount(response.data.likeCount);
+
+      // Update cache with new like status
+      if (likeCache) {
+        likeCache.setCachedLikeStatus(confessionId, response.data.liked, response.data.likeCount);
+      }
 
       if (onLikeChange) {
         onLikeChange(response.data.liked, response.data.likeCount);
