@@ -29,7 +29,18 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
       setLoading(true);
       setError(null);
       const response = await repliesAPI.getByConfessionId(confession._id);
-      setReplies(response.data || []);
+      
+      // Handle different response formats
+      let repliesData = [];
+      if (Array.isArray(response.data)) {
+        repliesData = response.data;
+      } else if (response.data && Array.isArray(response.data.replies)) {
+        repliesData = response.data.replies;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        repliesData = response.data.data;
+      }
+      
+      setReplies(repliesData);
     } catch (err) {
       console.error('Failed to load comments:', err);
       setError(err.response?.data?.error?.message || 'Failed to load comments. Please try again.');
@@ -127,7 +138,7 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
                 Try Again
               </button>
             </div>
-          ) : replies.length === 0 ? (
+          ) : !Array.isArray(replies) || replies.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
               <span className="material-symbols-outlined text-5xl mb-3 opacity-50">chat_bubble_outline</span>
               <p className="text-sm">No comments yet</p>
