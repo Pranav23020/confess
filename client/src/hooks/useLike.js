@@ -6,9 +6,9 @@ import { likesAPI } from '../api';
  *
  * Features:
  * - Optimistic UI updates (instant feedback)
- * - Request debouncing (prevents duplicate requests)
+ * - Strict request debouncing (prevents duplicate requests)
  * - Error handling with automatic rollback
- * - Real-time synchronization
+ * - Real-time synchronization with socket.io
  * - Network state awareness
  *
  * @param {string} confessionId - The ID of the confession/reply to like
@@ -29,17 +29,19 @@ export const useLike = (
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Refs for request debouncing
+  // Refs for strict request control
   const requestInFlightRef = useRef(false);
   const lastRequestTimeRef = useRef(0);
   const pendingRequestRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   // Store previous state for rollback on error
   const previousStateRef = useRef({ liked: initialLiked, likeCount: initialLikeCount });
 
   /**
-   * Debounced toggle like with optimistic updates
-   * Prevents duplicate requests within 500ms
+   * Strict debounced toggle like with optimistic updates
+   * Prevents any request while one is in flight
+   * Prevents duplicate requests within 800ms
    */
   const toggleLike = useCallback(async () => {
     // Prevent multiple simultaneous requests
@@ -47,20 +49,24 @@ export const useLike = (
       return;
     }
 
-    // Debounce: prevent requests within 500ms
+    // Strict debounce: prevent requests within 800ms of last successful request
     const now = Date.now();
-    if (now - lastRequestTimeRef.current < 500) {
-      // Queue the next request to run after debounce period
+    const timeSinceLastRequest = now - lastRequestTimeRef.current;
+    if (timeSinceLastRequest < 800) {
+      // Queue only one pending request
       if (!pendingRequestRef.current) {
+        const delay = 800 - timeSinceLastRequest;
         pendingRequestRef.current = setTimeout(() => {
-          toggleLike();
+          if (isMountedRef.current) {
+            toggleLike();
+          }
           pendingRequestRef.current = null;
-        }, 500 - (now - lastRequestTimeRef.current));
+        }, delay);
       }
       return;
     }
 
-    lastRequestTimeRef.current = now;
+    // Mark request as in flight immediately to block concurrent requests
     requestInFlightRef.current = true;
     setIsLoading(true);
     setError(null);
@@ -84,7 +90,12 @@ export const useLike = (
       // Send to server
       const response = await likesAPI.toggle(confessionId);
 
-      // Update UI with server response (in case of discrepancy)
+      // Only update if component is still mounted
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      // Update UI with server response (use server truth)
       setLiked(response.data.liked);
       setLikeCount(response.data.likeCount);
 
@@ -93,11 +104,85 @@ export const useLike = (
       }
 
       setError(null);
+      lastRequestTimeRef.current = Date.now();
     } catch (err) {
       console.error('Failed to toggle like:', err);
 
+      if (!isMountedRef.current) {
+        return;
+      }
+
       // Rollback to previous state on error
       setLiked(prevState.liked);
+      setLikeCount(prevState.likeCount);
+
+      if (onLikeChange) {
+        onLikeChange(prevState.liked, prevState.likeCount);
+      }
+
+      // Set error message
+      const errorMsg =
+        err.response?.data?.error?.message ||
+        err.message ||
+        'Failed to update like';
+      setError(errorMsg);
+      lastRequestTimeRef.current = Date.now();
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+      requestInFlightRef.current = false;
+    }
+  }, [confessionId, liked, likeCount, onLikeChange]);
+
+  /**
+   * Reset hook to initial state
+   */
+  const reset = useCallback(() => {
+    setLiked(initialLiked);
+    setLikeCount(initialLikeCount);
+    setError(null);
+    setIsLoading(false);
+    requestInFlightRef.current = false;
+    lastRequestTimeRef.current = 0;
+    if (pendingRequestRef.current) {
+      clearTimeout(pendingRequestRef.current);
+      pendingRequestRef.current = null;
+    }
+  }, [initialLiked, initialLikeCount]);
+
+  /**
+   * Cleanup on unmount
+   */
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (pendingRequestRef.current) {
+        clearTimeout(pendingRequestRef.current);
+        pendingRequestRef.current = null;
+      }
+    };
+  }, []);
+
+  return {
+    // State
+    liked,
+    likeCount,
+    isLoading,
+    error,
+
+    // Actions
+    toggleLike,
+    reset,
+
+    // Utility
+    setLiked,
+    setLikeCount,
+    setError
+  };
+};
+
+export default useLike;
       setLikeCount(prevState.likeCount);
 
       if (onLikeChange) {

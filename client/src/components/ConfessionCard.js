@@ -25,6 +25,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   
   // Double-tap detection ref
   const lastTapTimeRef = useRef(0);
+  const isProcessingActionRef = useRef(false);
 
   const getGradientColors = (index) => {
     const gradients = [
@@ -69,6 +70,11 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
    * Double-tap to like, but only if not already liked
    */
   const handleDoubleTap = useCallback((e) => {
+    // Prevent multiple rapid double-taps
+    if (isProcessingActionRef.current || isLoading) {
+      return;
+    }
+
     // Don't trigger if clicking buttons or interactive elements
     const target = e.target;
     if (
@@ -86,24 +92,37 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
 
     // Only like if not already liked (Instagram behavior)
     if (!liked && !isLoading) {
+      isProcessingActionRef.current = true;
+
       // Show center heart animation
       setShowCenterHeart(true);
       setTimeout(() => setShowCenterHeart(false), 800);
 
       // Trigger like
       toggleLike();
+
+      // Reset flag after request completes
+      setTimeout(() => {
+        isProcessingActionRef.current = false;
+      }, 1000);
     }
   }, [user, liked, isLoading, navigate, toggleLike]);
 
   /**
    * Touch/Click handler for double-tap detection
+   * Detects double-tap within 250ms window
    */
   const handleContentTap = useCallback((e) => {
+    // Don't process if already processing or loading
+    if (isProcessingActionRef.current || isLoading) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastTap = now - lastTapTimeRef.current;
 
-    // Double-tap detected (within 300ms)
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+    // Double-tap detected (within 250ms)
+    if (timeSinceLastTap < 250 && timeSinceLastTap > 0) {
       e.preventDefault();
       e.stopPropagation();
       handleDoubleTap(e);
@@ -111,7 +130,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
     } else {
       lastTapTimeRef.current = now;
     }
-  }, [handleDoubleTap]);
+  }, [handleDoubleTap, isLoading]);
 
   /**
    * Desktop double-click handler
@@ -285,7 +304,12 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
               onNavigateLogin={() => navigate('/login')}
               isAuthenticated={!!user}
             />
-            <button className="group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/confession/${confession._id}`);
+              }}
+              className="group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary">
               <span className="material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:scale-110">forum</span>
               <span className="hidden sm:inline">{confession.replyCount || 0}</span>
             </button>

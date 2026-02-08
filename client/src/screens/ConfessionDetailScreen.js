@@ -38,6 +38,7 @@ const ConfessionDetailScreen = () => {
 
   // Double-tap detection ref
   const lastTapTimeRef = useRef(0);
+  const isProcessingActionRef = useRef(false);
 
   const fetchPollResults = useCallback(async () => {
     try {
@@ -122,6 +123,11 @@ const ConfessionDetailScreen = () => {
    * Handle double-tap on confession content (Instagram-style)
    */
   const handleDoubleTap = useCallback((e) => {
+    // Prevent multiple rapid double-taps
+    if (isProcessingActionRef.current || liking) {
+      return;
+    }
+
     // Don't trigger if clicking buttons or interactive elements
     const target = e.target;
     if (
@@ -139,24 +145,37 @@ const ConfessionDetailScreen = () => {
 
     // Only like if not already liked (Instagram behavior)
     if (!liked && !liking) {
+      isProcessingActionRef.current = true;
+
       // Show center heart animation
       setShowCenterHeart(true);
       setTimeout(() => setShowCenterHeart(false), 800);
 
       // Trigger like
       toggleLike();
+
+      // Reset flag after request completes
+      setTimeout(() => {
+        isProcessingActionRef.current = false;
+      }, 1000);
     }
   }, [user, liked, liking, navigate, toggleLike]);
 
   /**
    * Touch/Click handler for double-tap detection
+   * Detects double-tap within 250ms window
    */
   const handleContentTap = useCallback((e) => {
+    // Don't process if already processing or loading
+    if (isProcessingActionRef.current || liking) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastTap = now - lastTapTimeRef.current;
 
-    // Double-tap detected (within 300ms)
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+    // Double-tap detected (within 250ms)
+    if (timeSinceLastTap < 250 && timeSinceLastTap > 0) {
       e.preventDefault();
       e.stopPropagation();
       handleDoubleTap(e);
@@ -164,7 +183,7 @@ const ConfessionDetailScreen = () => {
     } else {
       lastTapTimeRef.current = now;
     }
-  }, [handleDoubleTap]);
+  }, [handleDoubleTap, liking]);
 
   /**
    * Desktop double-click handler

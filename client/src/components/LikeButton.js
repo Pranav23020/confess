@@ -53,7 +53,10 @@ const LikeButton = ({
       return;
     }
 
-    if (isLoading) return;
+    // Don't allow clicking while loading
+    if (isLoading) {
+      return;
+    }
 
     // Trigger animation
     setIsAnimating(true);
