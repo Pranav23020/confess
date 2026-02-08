@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import LikeButton from '../components/LikeButton';
@@ -32,13 +32,8 @@ const ConfessionDetailScreen = () => {
   const [pollLoading, setPollLoading] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showCenterHeart, setShowCenterHeart] = useState(false);
   const { showToast } = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  // Double-tap detection ref
-  const lastTapTimeRef = useRef(0);
-  const isProcessingActionRef = useRef(false);
 
   const fetchPollResults = useCallback(async () => {
     try {
@@ -118,81 +113,6 @@ const ConfessionDetailScreen = () => {
     }
     toggleLike();
   }, [user, navigate, toggleLike]);
-
-  /**
-   * Handle double-tap on confession content (Instagram-style)
-   */
-  const handleDoubleTap = useCallback((e) => {
-    // Prevent multiple rapid double-taps
-    if (isProcessingActionRef.current || liking) {
-      return;
-    }
-
-    // Don't trigger if clicking buttons or interactive elements
-    const target = e.target;
-    if (
-      target.tagName === 'BUTTON' ||
-      target.closest('button') ||
-      target.closest('.no-double-tap')
-    ) {
-      return;
-    }
-
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Only like if not already liked (Instagram behavior)
-    if (!liked && !liking) {
-      isProcessingActionRef.current = true;
-
-      // Show center heart animation
-      setShowCenterHeart(true);
-      setTimeout(() => setShowCenterHeart(false), 800);
-
-      // Trigger like
-      toggleLike();
-
-      // Reset flag after request completes
-      setTimeout(() => {
-        isProcessingActionRef.current = false;
-      }, 1000);
-    }
-  }, [user, liked, liking, navigate, toggleLike]);
-
-  /**
-   * Touch/Click handler for double-tap detection
-   * Detects double-tap within 250ms window
-   */
-  const handleContentTap = useCallback((e) => {
-    // Don't process if already processing or loading
-    if (isProcessingActionRef.current || liking) {
-      return;
-    }
-
-    const now = Date.now();
-    const timeSinceLastTap = now - lastTapTimeRef.current;
-
-    // Double-tap detected (within 250ms)
-    if (timeSinceLastTap < 250 && timeSinceLastTap > 0) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDoubleTap(e);
-      lastTapTimeRef.current = 0; // Reset
-    } else {
-      lastTapTimeRef.current = now;
-    }
-  }, [handleDoubleTap, liking]);
-
-  /**
-   * Desktop double-click handler
-   */
-  const handleDoubleClick = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleDoubleTap(e);
-  }, [handleDoubleTap]);
 
   const handlePostReply = async () => {
     if (!user) {
@@ -377,30 +297,14 @@ const ConfessionDetailScreen = () => {
         {/* Confession */}
         <div className="relative group mb-4 sm:mb-5 md:mb-6">
           <div className="absolute -inset-[1px] bg-gradient-to-br from-primary/60 to-purple-500/20 rounded-xl sm:rounded-2xl opacity-70 blur-[1px]"></div>
-          <div className="relative bg-white dark:bg-surface-dark rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-8 shadow-card overflow-hidden double-tap-container">
-            {/* Instagram-style center heart animation */}
-            {showCenterHeart && (
-              <div className="instagram-large-heart instagram-center-heart">
-                <span className="material-symbols-outlined filled" style={{ fontSize: 'inherit' }}>
-                  favorite
-                </span>
-              </div>
-            )}
-            
+          <div className="relative bg-white dark:bg-surface-dark rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-8 shadow-card overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
               
-              {/* Double-tap area for text */}
-              <div 
-                onClick={handleContentTap}
-                onDoubleClick={handleDoubleClick}
-                className="cursor-pointer select-none"
-              >
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-4 sm:mb-5 md:mb-6">
-                  {confession.text.replace(/#[\w]+/gi, '').trim()}
-                </p>
-              </div>
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-4 sm:mb-5 md:mb-6">
+                {confession.text.replace(/#[\w]+/gi, '').trim()}
+              </p>
               
               {user && confession.userId === user._id && confession.hashtags && confession.hashtags.length > 0 && (
                 <div className="mb-6">
@@ -411,16 +315,12 @@ const ConfessionDetailScreen = () => {
                 <div className="mb-4 sm:mb-6">
                   <div 
                     className="relative group cursor-pointer" 
-                    onClick={(e) => {
-                      handleContentTap(e);
-                      openImageModal(0);
-                    }}
-                    onDoubleClick={handleDoubleClick}
+                    onClick={() => openImageModal(0)}
                   >
                     <img
                       src={getImageUrl(images[0])}
                       alt="Confession"
-                      className="w-full rounded-lg sm:rounded-xl object-cover max-h-48 sm:max-h-64 border border-slate-200 dark:border-white/10 select-none pointer-events-none"
+                      className="w-full rounded-lg sm:rounded-xl object-cover max-h-48 sm:max-h-64 border border-slate-200 dark:border-white/10"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                       <span className="px-3 py-1.5 text-xs font-semibold text-white bg-black/40 rounded-full">View photo</span>
