@@ -26,7 +26,7 @@ export const LikeCacheProvider = ({ children }) => {
     }
 
     return { liked: cached.liked, likeCount: cached.likeCount };
-  }, []);
+  }, [cacheTTL]);
 
   /**
    * Set like status in cache for a confession

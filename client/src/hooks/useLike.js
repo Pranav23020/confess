@@ -190,7 +190,7 @@ export const useLike = (
       }
       requestInFlightRef.current = false;
     }
-  }, [confessionId, liked, likeCount, onLikeChange]);
+  }, [confessionId, liked, likeCount, onLikeChange, likeCache]);
 
   /**
    * Reset hook to initial state
