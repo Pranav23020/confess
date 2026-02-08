@@ -102,17 +102,17 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   return (
     <>
       <article 
-        className="relative group cursor-pointer"
+        className="relative group cursor-pointer w-full h-full"
         onClick={() => navigate(`/confession/${confession._id}`)}
       >
         {/* Outer border glow - more subtle and precise */}
         <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[32px] opacity-30 group-hover:opacity-70 transition-opacity duration-700 blur-[3px]`} />
 
         {/* Stacked card layers */}
-        <div className="absolute inset-0 rounded-[32px] bg-white/80 dark:bg-white/[0.04] border border-white/10 shadow-lg translate-x-3 translate-y-3 -z-10 pointer-events-none" />
-        <div className="absolute inset-0 rounded-[32px] bg-white/90 dark:bg-white/[0.06] border border-white/10 shadow-md translate-x-1.5 translate-y-1.5 -z-10 pointer-events-none" />
+        <div className="absolute inset-0 rounded-[32px] bg-white/80 dark:bg-white/[0.04] border border-white/10 shadow-lg translate-x-2 translate-y-2 -z-10 pointer-events-none" />
+        <div className="absolute inset-0 rounded-[32px] bg-white/90 dark:bg-white/[0.06] border border-white/10 shadow-md translate-x-1 translate-y-1 -z-10 pointer-events-none" />
 
-        <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-6 sm:p-8 md:p-10 shadow-premium h-full min-h-[550px] sm:min-h-[600px] flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
+        <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-6 sm:p-8 md:p-10 shadow-premium w-full h-[550px] sm:h-[600px] flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 

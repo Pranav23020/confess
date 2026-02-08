@@ -23,6 +23,8 @@ const HomeScreen = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [dragStart, setDragStart] = useState(null);
   const [draggedDistance, setDraggedDistance] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState('');
   const feedLimit = 20;
 
   // Use a ref to track the latest selected category without triggering useEffect re-runs
@@ -205,14 +207,26 @@ const HomeScreen = () => {
   };
 
   const handleNextCard = () => {
-    if (currentCardIndex < filteredConfessions.length - 1) {
-      setCurrentCardIndex(currentCardIndex + 1);
+    if (currentCardIndex < filteredConfessions.length - 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('left');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex + 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
     }
   };
 
   const handlePrevCard = () => {
-    if (currentCardIndex > 0) {
-      setCurrentCardIndex(currentCardIndex - 1);
+    if (currentCardIndex > 0 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('right');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex - 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
     }
   };
 
@@ -333,13 +347,20 @@ const HomeScreen = () => {
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
-                  className="relative w-full max-w-md sm:max-w-lg mx-auto mb-6 sm:mb-8 min-h-[600px] sm:min-h-[650px] flex items-center"
+                  className="relative w-full max-w-md sm:max-w-lg mx-auto mb-6 sm:mb-8 h-[600px] sm:h-[650px] flex items-center justify-center overflow-hidden"
                 >
                   {/* Card Container */}
                   <div
-                    className="transition-transform duration-300 ease-out cursor-grab active:cursor-grabbing"
+                    className={`w-full transition-all duration-300 ease-out ${
+                      dragStart ? 'cursor-grabbing' : 'cursor-grab'
+                    } ${
+                      slideDirection === 'left' ? 'animate-slide-out-left' : 
+                      slideDirection === 'right' ? 'animate-slide-out-right' : 
+                      'animate-slide-in'
+                    }`}
                     style={{
-                      transform: `translateX(${draggedDistance}px)`,
+                      transform: dragStart ? `translateX(${draggedDistance}px)` : 'translateX(0)',
+                      opacity: slideDirection ? 0 : 1,
                     }}
                   >
                     {loading ? (
