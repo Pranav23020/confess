@@ -333,7 +333,7 @@ const HomeScreen = () => {
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
-                  className="relative w-full max-w-3xl mx-auto mb-6 sm:mb-8 "
+                  className="relative w-full max-w-md sm:max-w-lg mx-auto mb-6 sm:mb-8 min-h-[600px] sm:min-h-[650px] flex items-center"
                 >
                   {/* Card Container */}
                   <div

@@ -112,19 +112,19 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
         <div className="absolute inset-0 rounded-[32px] bg-white/80 dark:bg-white/[0.04] border border-white/10 shadow-lg translate-x-3 translate-y-3 -z-10 pointer-events-none" />
         <div className="absolute inset-0 rounded-[32px] bg-white/90 dark:bg-white/[0.06] border border-white/10 shadow-md translate-x-1.5 translate-y-1.5 -z-10 pointer-events-none" />
 
-        <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-2.5 sm:p-3 md:p-6 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
+        <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-6 sm:p-8 md:p-10 shadow-premium h-full min-h-[550px] sm:min-h-[600px] flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 
         <div className="relative z-10 flex-grow">
-          <div className="flex justify-between items-start mb-2 sm:mb-2">
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary/10 transition-colors">
-                <span className="material-symbols-outlined text-primary/60 text-sm sm:text-base select-none">format_quote</span>
+          <div className="flex justify-between items-start mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-2">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary/10 transition-colors">
+                <span className="material-symbols-outlined text-primary/60 text-lg sm:text-xl select-none">format_quote</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">A WHISPER FROM</span>
-                <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">{getTimeAgo(confession.createdAt)}</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">A WHISPER FROM</span>
+                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1">{getTimeAgo(confession.createdAt)}</span>
               </div>
             </div>
             <button
@@ -138,18 +138,18 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 mb-3 sm:mb-4">
-            <span className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[8px] sm:text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/10">
+          <div className="flex items-center gap-2 mb-6 sm:mb-8">
+            <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/10">
               {categoryLabel(confession.category)}
             </span>
             {confession.isPoll && (
-              <span className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[8px] sm:text-[9px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-500 border border-rose-500/10">
+              <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-500 border border-rose-500/10">
                 Poll Active
               </span>
             )}
           </div>
 
-          <p className="text-sm sm:text-base md:text-lg font-bold leading-tight sm:leading-[1.6] tracking-tight text-slate-800 dark:text-gray-100 mb-3 sm:mb-4 [text-wrap:balance]">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-snug sm:leading-relaxed tracking-tight text-slate-800 dark:text-gray-100 mb-6 sm:mb-8 [text-wrap:balance]">
             {confession.text.replace(/#[\w]+/gi, '').trim()}
           </p>
 
@@ -161,7 +161,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
           )}
 
           {images.length > 0 && (
-            <div className="mb-3 sm:mb-4 relative group/images">
+            <div className="mb-6 sm:mb-8 relative group/images">
               <div
                 ref={imageScrollRef}
                 className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar rounded-lg sm:rounded-2xl"
@@ -173,7 +173,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
                     <img
                       src={getImageUrl(img)}
                       alt={`Confession ${index + 1}`}
-                      className="w-full rounded-lg sm:rounded-2xl object-cover max-h-32 sm:max-h-48 border border-white/5 shadow-lg shadow-black/20"
+                      className="w-full rounded-2xl sm:rounded-3xl object-cover max-h-48 sm:max-h-64 md:max-h-80 border border-white/5 shadow-lg shadow-black/20"
                       draggable={false}
                     />
                   </div>
@@ -188,8 +188,8 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-slate-100 dark:border-white/5 relative z-10">
-          <div className="flex gap-1 sm:gap-2">
+        <div className="flex items-center justify-between mt-auto pt-4 sm:pt-6 border-t border-slate-100 dark:border-white/5 relative z-10">
+          <div className="flex gap-2 sm:gap-3">
             <LikeButton
               liked={liked}
               likeCount={likeCount}
@@ -204,18 +204,18 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
                 e.stopPropagation();
                 setShowCommentsModal(true);
               }}
-              className="group/btn flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all font-bold text-[10px] sm:text-xs text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary">
-              <span className="material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:scale-110">forum</span>
-              <span className="hidden sm:inline">{confession.replyCount || 0}</span>
+              className="group/btn flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all font-bold text-xs sm:text-sm text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary">
+              <span className="material-symbols-outlined text-lg sm:text-xl transition-transform group-hover/btn:scale-110">forum</span>
+              <span>{confession.replyCount || 0}</span>
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setShowShareModal(true);
               }}
-              className="group/btn flex items-center justify-center w-8 sm:w-10 h-8 sm:h-10 rounded-lg transition-all text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-purple-500"
+              className="group/btn flex items-center justify-center w-10 sm:w-12 h-10 sm:h-12 rounded-xl transition-all text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-purple-500"
             >
-              <span className="material-symbols-outlined text-base sm:text-lg transition-transform group-hover/btn:rotate-12">share</span>
+              <span className="material-symbols-outlined text-lg sm:text-xl transition-transform group-hover/btn:rotate-12">share</span>
             </button>
           </div>
 
