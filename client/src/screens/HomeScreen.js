@@ -19,15 +19,18 @@ const HomeScreen = () => {
   const [topReplied, setTopReplied] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [showLoadMoreFallback, setShowLoadMoreFallback] = useState(false);
   const [newConfessionsCount, setNewConfessionsCount] = useState(0);
-  const loadMoreRef = useRef(null);
-  const feedLimit = 10;
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [dragStart, setDragStart] = useState(null);
+  const [draggedDistance, setDraggedDistance] = useState(0);
+  const feedLimit = 20;
 
   // Use a ref to track the latest selected category without triggering useEffect re-runs
   const categoryRef = useRef(selectedCategory);
+  const swipeRef = useRef(null);
   useEffect(() => {
     categoryRef.current = selectedCategory;
+    setCurrentCardIndex(0);
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -149,30 +152,71 @@ const HomeScreen = () => {
     });
   }, [confessions, blockedKeywords]);
 
+  // Auto-load more confessions when near the end
   useEffect(() => {
-    if (!loadMoreRef.current) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          fetchConfessions(page + 1, true);
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, page, fetchConfessions]);
-
-  useEffect(() => {
-    if (!hasMore || loading || loadingMore) {
-      setShowLoadMoreFallback(false);
-      return undefined;
+    if (currentCardIndex >= confessions.length - 3 && hasMore && !loadingMore && !loading) {
+      fetchConfessions(page + 1, true);
     }
-    const timer = setTimeout(() => {
-      setShowLoadMoreFallback(true);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [hasMore, loading, loadingMore]);
+  }, [currentCardIndex, confessions.length, hasMore, loadingMore, loading, page, fetchConfessions]);
+
+  // Swipe handlers
+  const handleMouseDown = (e) => {
+    setDragStart(e.clientX);
+  };
+
+  const handleMouseMove = (e) => {
+    if (dragStart === null) return;
+    setDraggedDistance(e.clientX - dragStart);
+  };
+
+  const handleMouseUp = () => {
+    if (dragStart === null) return;
+    const threshold = 50;
+    if (draggedDistance > threshold) {
+      // Swiped right
+      handlePrevCard();
+    } else if (draggedDistance < -threshold) {
+      // Swiped left
+      handleNextCard();
+    }
+    setDragStart(null);
+    setDraggedDistance(0);
+  };
+
+  const handleTouchStart = (e) => {
+    setDragStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    if (dragStart === null) return;
+    setDraggedDistance(e.touches[0].clientX - dragStart);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragStart === null) return;
+    const threshold = 50;
+    if (draggedDistance > threshold) {
+      handlePrevCard();
+    } else if (draggedDistance < -threshold) {
+      handleNextCard();
+    }
+    setDragStart(null);
+    setDraggedDistance(0);
+  };
+
+  const handleNextCard = () => {
+    if (currentCardIndex < filteredConfessions.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+    }
+  };
+
+  const handlePrevCard = () => {
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+    }
+  };
+
+
 
   const truncateText = (text, max = 60) => {
     if (!text) return '';
@@ -279,51 +323,75 @@ const HomeScreen = () => {
               />
             ) : (
               <>
-                <div className="mb-4 sm:mb-6 md:mb-8 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-1 h-5 sm:h-6 md:h-7 bg-primary rounded-full flex-shrink-0"></div>
-                    <p className="text-sm sm:text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight truncate">Recent whispers</p>
+                {/* Single Card Swiper */}
+                <div
+                  ref={swipeRef}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  className="relative w-full max-w-3xl mx-auto mb-6 sm:mb-8 "
+                >
+                  {/* Card Container */}
+                  <div
+                    className="transition-transform duration-300 ease-out cursor-grab active:cursor-grabbing"
+                    style={{
+                      transform: `translateX(${draggedDistance}px)`,
+                    }}
+                  >
+                    {loading ? (
+                      renderSkeletonCard('loading')
+                    ) : (
+                      <ConfessionCard key={filteredConfessions[currentCardIndex]._id} confession={filteredConfessions[currentCardIndex]} showExpiry={false} />
+                    )}
                   </div>
-                  {canPost ? (
-                    <Link
-                      to="/new"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg md:rounded-xl font-bold transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-95 text-xs sm:text-sm flex-shrink-0"
+
+                  {/* Left Arrow */}
+                  {currentCardIndex > 0 && (
+                    <button
+                      onClick={handlePrevCard}
+                      className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-16 z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
                     >
-                      <span className="material-symbols-outlined text-[18px] sm:text-[20px]">add_circle</span>
-                      <span className="hidden sm:inline">New</span>
-                    </Link>
-                  ) : (
-                    <Link
-                      to="/limit-reached"
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-slate-400 dark:bg-slate-600 text-white rounded-lg md:rounded-xl font-bold transition-all text-xs sm:text-sm flex-shrink-0 opacity-80 active:scale-95"
+                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">chevron_left</span>
+                    </button>
+                  )}
+
+                  {/* Right Arrow */}
+                  {currentCardIndex < filteredConfessions.length - 1 && (
+                    <button
+                      onClick={handleNextCard}
+                      className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-16 z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
                     >
-                      <span className="material-symbols-outlined text-[18px] sm:text-[20px]">block</span>
-                    </Link>
+                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">chevron_right</span>
+                    </button>
                   )}
                 </div>
-                <div className="flex flex-col gap-3 sm:gap-4 md:gap-6">
-                  {filteredConfessions.map((confession) => (
-                    <ConfessionCard key={confession._id} confession={confession} showExpiry={false} />
-                  ))}
-                  {loadingMore && [3, 4].map(renderSkeletonCard)}
-                  <div ref={loadMoreRef} className="h-4 sm:h-6"></div>
-                  {hasMore && !loadingMore && showLoadMoreFallback && (
-                    <div className="flex justify-center pb-8 sm:pb-10 md:pb-12">
-                      <button
-                        onClick={() => fetchConfessions(page + 1, true)}
-                        className="group flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl md:rounded-2xl border-2 border-slate-200 dark:border-white/5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-primary hover:border-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-primary/20 active:scale-95"
-                      >
-                        Load more whispers
-                        <span className="material-symbols-outlined text-[16px] sm:text-[18px] group-hover:translate-y-0.5 transition-transform">keyboard_arrow_down</span>
-                      </button>
-                    </div>
+
+                {/* Card Counter */}
+                <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8">
+                  <span className="text-sm sm:text-base font-bold text-slate-600 dark:text-slate-400">
+                    {currentCardIndex + 1} / {filteredConfessions.length}
+                  </span>
+                  {loadingMore && (
+                    <span className="text-xs text-slate-500 dark:text-slate-500 animate-pulse">Loading more...</span>
                   )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 sm:mb-8">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-300"
+                    style={{ width: `${(currentCardIndex + 1) / filteredConfessions.length * 100}%` }}
+                  />
                 </div>
               </>
             )}
           </div>
 
-          <aside className="hidden lg:block w-72 xl:w-80 sticky top-20 h-fit">
+          <aside className="hidden xl:block w-72 xl:w-80 sticky top-20 h-fit">
             <div className="bg-white dark:bg-surface-dark rounded-2xl xl:rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg dark:shadow-black/20 transition-all duration-500 hover:border-primary/20">
               <div className="p-4 sm:p-5 md:p-6 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
                 <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">

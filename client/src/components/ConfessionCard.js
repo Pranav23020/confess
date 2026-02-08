@@ -106,13 +106,13 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
         onClick={() => navigate(`/confession/${confession._id}`)}
       >
         {/* Outer border glow - more subtle and precise */}
-        <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[28px] opacity-40 group-hover:opacity-100 transition-opacity duration-700 blur-[2px]`} />
+        <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[32px] opacity-30 group-hover:opacity-70 transition-opacity duration-700 blur-[3px]`} />
 
         {/* Stacked card layers */}
-        <div className="absolute inset-0 rounded-[28px] bg-white/70 dark:bg-white/[0.03] border border-white/10 shadow-lg translate-x-2 translate-y-2 -z-10 pointer-events-none" />
-        <div className="absolute inset-0 rounded-[28px] bg-white/85 dark:bg-white/[0.05] border border-white/10 shadow-md translate-x-1 translate-y-1 -z-10 pointer-events-none" />
+        <div className="absolute inset-0 rounded-[32px] bg-white/80 dark:bg-white/[0.04] border border-white/10 shadow-lg translate-x-3 translate-y-3 -z-10 pointer-events-none" />
+        <div className="absolute inset-0 rounded-[32px] bg-white/90 dark:bg-white/[0.06] border border-white/10 shadow-md translate-x-1.5 translate-y-1.5 -z-10 pointer-events-none" />
 
-        <div className="relative z-10 bg-white dark:bg-surface-dark rounded-[28px] p-2.5 sm:p-3 md:p-6 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/5">
+        <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-2.5 sm:p-3 md:p-6 shadow-premium h-full flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 
