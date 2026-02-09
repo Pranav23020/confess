@@ -6,11 +6,11 @@ import { LikeCacheContext } from '../context/LikeCacheContext';
  * Custom hook for managing like state and actions
  *
  * Features:
- * - Optimistic UI updates (instant feedback)
- * - Strict request debouncing (prevents duplicate requests)
- * - Error handling with automatic rollback
- * - Real-time synchronization with socket.io
- * - Network state awareness
+ * - INSTANT optimistic UI updates (zero delay)
+ * - Fast request debouncing (300ms prevents spam)
+ * - Automatic error rollback
+ * - Smart caching for instant repeated views
+ * - No loading states - purely optimistic
  *
  * @param {string} confessionId - The ID of the confession/reply to like
  * @param {number} initialLikeCount - Initial like count from server
@@ -26,74 +26,45 @@ export const useLike = (
 ) => {
   const likeCache = useContext(LikeCacheContext);
   
-  // State management
-  const [liked, setLiked] = useState(initialLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [isLoading, setIsLoading] = useState(false);
+  // State management - Initialize from cache or props (INSTANT, no API call)
+  const [liked, setLiked] = useState(() => {
+    if (likeCache) {
+      const cached = likeCache.getCachedLikeStatus(confessionId);
+      if (cached) return cached.liked;
+    }
+    return initialLiked;
+  });
+  
+  const [likeCount, setLikeCount] = useState(() => {
+    if (likeCache) {
+      const cached = likeCache.getCachedLikeStatus(confessionId);
+      if (cached) return cached.likeCount;
+    }
+    return initialLikeCount;
+  });
+  
   const [error, setError] = useState(null);
-  const [initializing, setInitializing] = useState(true);
 
   // Refs for strict request control
   const requestInFlightRef = useRef(false);
   const lastRequestTimeRef = useRef(0);
   const pendingRequestRef = useRef(null);
   const isMountedRef = useRef(true);
-  const hasInitialized = useRef(false);
 
   // Store previous state for rollback on error
-  const previousStateRef = useRef({ liked: initialLiked, likeCount: initialLikeCount });
+  const previousStateRef = useRef({ liked, likeCount });
 
-  // Fetch initial liked status from server or cache
+  // Cache initial state on mount (INSTANT - no API call needed)
   useEffect(() => {
-    const fetchLikedStatus = async () => {
-      if (hasInitialized.current || !confessionId) return;
-      
-      hasInitialized.current = true;
-      
-      try {
-        // Check cache first for instant load
-        if (likeCache) {
-          const cached = likeCache.getCachedLikeStatus(confessionId);
-          if (cached) {
-            if (isMountedRef.current) {
-              setLiked(cached.liked);
-              setLikeCount(cached.likeCount);
-              setInitializing(false);
-              return; // Use cached data, don't make API call
-            }
-          }
-        }
-
-        // If not in cache, fetch from server
-        const response = await likesAPI.check(confessionId);
-        if (isMountedRef.current) {
-          const liked = response.data.liked;
-          const likeCount = response.data.likeCount || initialLikeCount;
-          
-          // Store in cache for future use
-          if (likeCache) {
-            likeCache.setCachedLikeStatus(confessionId, liked, likeCount);
-          }
-          
-          setLiked(liked);
-          setLikeCount(likeCount);
-        }
-      } catch (err) {
-        console.error('Failed to fetch like status:', err);
-      } finally {
-        if (isMountedRef.current) {
-          setInitializing(false);
-        }
-      }
-    };
-
-    fetchLikedStatus();
-  }, [confessionId, initialLikeCount, likeCache]);
+    if (likeCache && confessionId) {
+      likeCache.setCachedLikeStatus(confessionId, liked, likeCount);
+    }
+  }, [confessionId, likeCache, liked, likeCount]);
 
   /**
-   * Strict debounced toggle like with optimistic updates
-   * Prevents any request while one is in flight
-   * Prevents duplicate requests within 800ms
+   * INSTANT toggle like with optimistic updates
+   * UI updates immediately, API syncs in background
+   * Fast 300ms debouncing prevents spam while feeling instant
    */
   const toggleLike = useCallback(async () => {
     // Prevent multiple simultaneous requests
@@ -101,13 +72,13 @@ export const useLike = (
       return;
     }
 
-    // Strict debounce: prevent requests within 800ms of last successful request
+    // Fast debounce: prevent requests within 300ms (faster than before)
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTimeRef.current;
-    if (timeSinceLastRequest < 800) {
+    if (timeSinceLastRequest < 300) {
       // Queue only one pending request
       if (!pendingRequestRef.current) {
-        const delay = 800 - timeSinceLastRequest;
+        const delay = 300 - timeSinceLastRequest;
         pendingRequestRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             toggleLike();
@@ -118,20 +89,24 @@ export const useLike = (
       return;
     }
 
-    // Mark request as in flight immediately to block concurrent requests
+    // Mark request as in flight immediately
     requestInFlightRef.current = true;
-    setIsLoading(true);
     setError(null);
 
     // Store current state for rollback
     const prevState = { liked, likeCount };
     previousStateRef.current = prevState;
 
-    // Optimistic update
+    // INSTANT optimistic update (NO loading state)
     const newLiked = !liked;
     const newLikeCount = newLiked ? likeCount + 1 : likeCount - 1;
     setLiked(newLiked);
     setLikeCount(newLikeCount);
+
+    // Update cache immediately for instant repeated views
+    if (likeCache) {
+      likeCache.setCachedLikeStatus(confessionId, newLiked, newLikeCount);
+    }
 
     // Call the callback if provided
     if (onLikeChange) {
@@ -139,7 +114,7 @@ export const useLike = (
     }
 
     try {
-      // Send to server
+      // Sync with server in background (user doesn't wait)
       const response = await likesAPI.toggle(confessionId);
 
       // Only update if component is still mounted
@@ -147,11 +122,11 @@ export const useLike = (
         return;
       }
 
-      // Update UI with server response (use server truth)
+      // Sync with server truth
       setLiked(response.data.liked);
       setLikeCount(response.data.likeCount);
 
-      // Update cache with new like status
+      // Update cache with server truth
       if (likeCache) {
         likeCache.setCachedLikeStatus(confessionId, response.data.liked, response.data.likeCount);
       }
@@ -173,6 +148,11 @@ export const useLike = (
       setLiked(prevState.liked);
       setLikeCount(prevState.likeCount);
 
+      // Rollback cache too
+      if (likeCache) {
+        likeCache.setCachedLikeStatus(confessionId, prevState.liked, prevState.likeCount);
+      }
+
       if (onLikeChange) {
         onLikeChange(prevState.liked, prevState.likeCount);
       }
@@ -185,9 +165,6 @@ export const useLike = (
       setError(errorMsg);
       lastRequestTimeRef.current = Date.now();
     } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
       requestInFlightRef.current = false;
     }
   }, [confessionId, liked, likeCount, onLikeChange, likeCache]);
@@ -225,7 +202,6 @@ export const useLike = (
     // State
     liked,
     likeCount,
-    isLoading: isLoading || initializing,
     error,
 
     // Actions

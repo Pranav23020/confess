@@ -11,11 +11,10 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   
-  // Use the custom hook for like management with optimistic updates
+  // Use the custom hook for like management with INSTANT optimistic updates
   const {
     liked,
     likeCount,
-    isLoading,
     toggleLike
   } = useLike(confession._id, confession.likeCount || 0, confession.liked || false);
   
@@ -194,7 +193,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
               liked={liked}
               likeCount={likeCount}
               onLike={handleLike}
-              isLoading={isLoading}
+
               compact={true}
               onNavigateLogin={() => navigate('/login')}
               isAuthenticated={!!user}

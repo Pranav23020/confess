@@ -6,9 +6,10 @@ import '../styles/likeAnimations.css';
  *
  * Features:
  * - Single tap/click toggle (like/unlike)
+ * - INSTANT feedback - zero delay
  * - Smooth scale and bounce animation (Instagram-style)
  * - Heart icon (outline → filled red when liked)
- * - Optimistic UI updates
+ * - Pure optimistic UI - no loading states
  * - Mobile-first touch support
  * - Accessibility support
  * - 60fps smooth animations
@@ -18,7 +19,6 @@ import '../styles/likeAnimations.css';
  * @param {boolean} props.liked - Whether the item is currently liked
  * @param {number} props.likeCount - Current like count
  * @param {Function} props.onLike - Callback when like is toggled
- * @param {boolean} props.isLoading - Whether like request is in flight
  * @param {boolean} props.compact - Compact mode (smaller size)
  * @param {string} props.className - Additional CSS classes
  * @param {Function} props.onNavigateLogin - Callback to navigate to login
@@ -29,7 +29,6 @@ const LikeButton = ({
   liked = false,
   likeCount = 0,
   onLike = () => {},
-  isLoading = false,
   compact = false,
   className = '',
   onNavigateLogin = null,
@@ -42,7 +41,7 @@ const LikeButton = ({
   const buttonRef = useRef(null);
 
   /**
-   * Handle button click - toggle like/unlike
+   * Handle button click - toggle like/unlike INSTANTLY
    */
   const handleClick = useCallback((e) => {
     e.preventDefault();
@@ -53,18 +52,13 @@ const LikeButton = ({
       return;
     }
 
-    // Don't allow clicking while loading
-    if (isLoading) {
-      return;
-    }
-
     // Trigger animation
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 400);
 
-    // Call the like handler
+    // Call the like handler immediately
     onLike();
-  }, [isLoading, onLike, isAuthenticated, onNavigateLogin]);
+  }, [onLike, isAuthenticated, onNavigateLogin]);
 
   /**
    * Animate like count change with pop animation
@@ -86,18 +80,16 @@ const LikeButton = ({
     <button
       ref={buttonRef}
       onClick={handleClick}
-      disabled={isLoading}
       aria-label={liked ? 'Unlike this post' : 'Like this post'}
       aria-pressed={liked}
       className={`
         group/btn flex items-center gap-1 sm:gap-1.5 ${baseButtonClasses} rounded-lg sm:rounded-xl
-        select-none font-bold
+        select-none font-bold cursor-pointer
         like-button-transition
         ${liked
           ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
           : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-red-500'
         }
-        ${isLoading ? 'opacity-75 cursor-wait' : 'cursor-pointer'}
         ${isAnimating ? 'instagram-button-pulse' : ''}
         ${className}
       `}

@@ -4,13 +4,14 @@ export const LikeCacheContext = createContext();
 
 /**
  * Caches like status for confessions to prevent redundant API calls
- * Stores up to 50 confessions in memory for quick lookups
+ * Stores up to 200 confessions in memory for instant repeated views
+ * Cache persists for 15 minutes - perfect for browsing and coming back
  */
 export const LikeCacheProvider = ({ children }) => {
   // In-memory cache: { confessionId: { liked, likeCount, timestamp } }
   const cacheRef = useRef({});
-  const maxCacheSize = 50;
-  const cacheTTL = 5 * 60 * 1000; // 5 minutes
+  const maxCacheSize = 200; // Increased from 50 for better performance
+  const cacheTTL = 15 * 60 * 1000; // 15 minutes (increased from 5)
 
   /**
    * Get cached like status for a confession

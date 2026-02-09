@@ -22,8 +22,8 @@ const ConfessionDetailScreen = () => {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState(null);
   
-  // Use the custom hook for like management
-  const { liked, likeCount, isLoading: liking, toggleLike } = useLike(id, 0, false);
+  // Use the custom hook for INSTANT like management
+  const { liked, likeCount, toggleLike } = useLike(id, 0, false);
   
   const [showShareModal, setShowShareModal] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
@@ -369,7 +369,6 @@ const ConfessionDetailScreen = () => {
                     liked={liked}
                     likeCount={likeCount}
                     onLike={handleLike}
-                    isLoading={liking}
                     compact={false}
                     onNavigateLogin={() => navigate('/login')}
                     isAuthenticated={!!user}
