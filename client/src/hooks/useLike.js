@@ -176,7 +176,6 @@ export const useLike = (
     setLiked(initialLiked);
     setLikeCount(initialLikeCount);
     setError(null);
-    setIsLoading(false);
     requestInFlightRef.current = false;
     lastRequestTimeRef.current = 0;
     if (pendingRequestRef.current) {
