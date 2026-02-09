@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HashtagInput from '../components/HashtagInput';
+import BottomNav from '../components/BottomNav';
 import { confessionsAPI, userAPI, draftsAPI } from '../api';
 import { AuthContext } from '../context/AuthContext';
 
@@ -544,6 +545,7 @@ const NewConfessionScreen = () => {
           </div>
         </div>
       </div>
+      <BottomNav active="new" />
     </div>
   );
 };

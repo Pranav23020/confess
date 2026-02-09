@@ -49,6 +49,17 @@ const DesktopNav = () => {
             </Link>
 
             <Link
+              to="/new"
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-300 ${isActive('/new')
+                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/10'
+                }`}
+            >
+              <span className={`material-symbols-outlined text-[20px] ${isActive('/new') ? 'filled' : ''}`}>edit_square</span>
+              <span className="font-semibold text-sm">New</span>
+            </Link>
+
+            <Link
               to={user ? "/profile" : "/login"}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-300 ${isActive('/profile') || isActive('/login')
                 ? 'bg-primary text-white shadow-lg shadow-primary/30'
