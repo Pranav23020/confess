@@ -4,6 +4,7 @@ import BottomNav from '../components/BottomNav';
 import ConfessionCard from '../components/ConfessionCard';
 import EmptyState from '../components/EmptyState';
 import { confessionsAPI, userAPI, blockedKeywordsAPI, exploreAPI } from '../api';
+import { logger } from '../utils/logger';
 
 const HomeScreen = () => {
   const [confessions, setConfessions] = useState([]);
@@ -57,7 +58,7 @@ const HomeScreen = () => {
     // Handle confession deletions
     const handleConfessionDeleted = (data) => {
       const { confessionId } = data;
-      console.log(`🗑️ Confession deleted: ${confessionId}, removing from feed`);
+      logger.log(`🗑️ Confession deleted: ${confessionId}, removing from feed`);
 
       // Remove the deleted confession from the list
       setConfessions(prev => prev.filter(c => c._id !== confessionId));

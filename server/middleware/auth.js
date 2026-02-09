@@ -23,11 +23,20 @@ exports.protect = async (req, res, next) => {
     }
 
     try {
-        // 3. Verify token
-        const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_do_not_use';
+        // 3. Verify JWT_SECRET is configured
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            console.error('❌ FATAL: JWT_SECRET environment variable is not set!');
+            return res.status(500).json({
+                success: false,
+                error: 'Server configuration error'
+            });
+        }
+
+        // 4. Verify token
         const decoded = jwt.verify(token, jwtSecret);
 
-        // 4. Attach user to request
+        // 5. Attach user to request
         req.user = await User.findById(decoded.id);
 
         if (!req.user) {
@@ -63,7 +72,13 @@ exports.optionalProtect = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_do_not_use');
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            // Just proceed without authentication if JWT_SECRET is not set
+            return next();
+        }
+
+        const decoded = jwt.verify(token, jwtSecret);
         req.user = await User.findById(decoded.id);
         next();
     } catch (err) {

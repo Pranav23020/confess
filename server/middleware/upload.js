@@ -66,13 +66,47 @@ const optimizeImages = async (req, res, next) => {
   next();
 };
 
-// Create multer instance
+// Create multer instance with strict limits
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max
+    fileSize: 5 * 1024 * 1024, // 5MB max per file
+    files: 5, // Maximum 5 files per upload
+    fieldSize: 1 * 1024 * 1024 // 1MB max for text fields
   },
   fileFilter: fileFilter
 });
 
-module.exports = { upload, optimizeImages };
+// Error handler middleware for multer errors
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        error: { message: 'File too large. Maximum size is 5MB per file.' }
+      });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        error: { message: 'Too many files. Maximum is 5 files per upload.' }
+      });
+    }
+    if (err.code === 'LIMIT_FIELD_VALUE') {
+      return res.status(400).json({
+        error: { message: 'Field value too large.' }
+      });
+    }
+    return res.status(400).json({
+      error: { message: 'File upload error: ' + err.message }
+    });
+  }
+
+  if (err) {
+    return res.status(400).json({
+      error: { message: err.message || 'File upload failed' }
+    });
+  }
+
+  next();
+};
+
+module.exports = { upload, optimizeImages, handleMulterError };

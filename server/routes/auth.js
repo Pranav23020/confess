@@ -60,10 +60,29 @@ const sendTokenResponse = (user, statusCode, res) => {
         });
 };
 
+// General auth limiter for login/register
+// Prevents brute force password guessing and mass registration
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 login/register attempts per windowMs
+    message: { success: false, error: 'Too many login/register attempts. Please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Helper to validate password strength
+const validatePasswordStrength = (password) => {
+    if (password.length < 8) return 'Password must be at least 8 characters long';
+    // Optional: Add more checks (uppercase, number, etc.)
+    // For now, let's just enforce length and at least one number or special char
+    if (!/[0-9!@#$%^&*]/.test(password)) return 'Password must contain at least one number or special character';
+    return null;
+};
+
 // @route   POST /api/auth/register
 // @desc    Register user
 // @access  Public
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
     try {
         const { username, email, password, googleId, avatar, displayName } = req.body;
 
@@ -94,6 +113,12 @@ router.post('/register', async (req, res) => {
         if (googleId) {
             userData.googleId = googleId;
         } else if (password) {
+            // Check password strength
+            const passwordError = validatePasswordStrength(password);
+            if (passwordError) {
+                return res.status(400).json({ success: false, error: passwordError });
+            }
+
             // If registering with email/password
             const salt = await bcrypt.genSalt(10);
             userData.password = await bcrypt.hash(password, salt);
@@ -134,7 +159,7 @@ router.post('/check-username', async (req, res) => {
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -313,7 +338,7 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
         res.status(200).json(genericResponse);
     } catch (error) {
         console.error('Forgot password error:', error);
-        
+
         // If we saved the token but email failed, clean up
         if (error.user) {
             try {

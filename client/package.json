@@ -5,6 +5,7 @@
   "dependencies": {
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
+    "isomorphic-dompurify": "^3.0.0-rc.2",
     "lucide-react": "^0.563.0",
     "postcss": "^8.4.31",
     "react": "^18.2.0",

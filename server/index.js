@@ -35,7 +35,21 @@ require('./config/passport')(passport);
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://apis.google.com"], // Allow Google Auth
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Allow Google Fonts
+      imgSrc: ["'self'", "data:", "https:", "blob:"], // Allow external images
+      fontSrc: ["'self'", "https://fonts.gstatic.com"], // Allow Google Fonts
+      connectSrc: ["'self'", "https://accounts.google.com", "https://oauth2.googleapis.com", process.env.FRONTEND_URL || "http://localhost:3000"],
+      frameSrc: ["'self'", "https://accounts.google.com"], // Allow Google Auth iframe
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false
 }));
 app.use(compression());
 app.use(cookieParser()); // Parse cookies
@@ -130,10 +144,10 @@ app.get('/api/health', async (req, res) => {
   try {
     // Check MongoDB
     const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    
+
     // Check Redis
     const redisStatus = await redisHealthCheck();
-    
+
     const health = {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -145,10 +159,10 @@ app.get('/api/health', async (req, res) => {
         redis: redisStatus
       }
     };
-    
+
     // Return 503 if any critical service is down
     const statusCode = mongoStatus === 'connected' ? 200 : 503;
-    
+
     res.status(statusCode).json(health);
   } catch (error) {
     res.status(503).json({
@@ -183,7 +197,7 @@ const io = require('./utils/socket').init(server);
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  
+
   // Log Redis status after short delay to allow connection
   setTimeout(() => {
     if (isRedisConnected()) {
@@ -192,7 +206,7 @@ server.listen(PORT, () => {
       console.warn('⚠️  Redis not connected - using fallback mechanisms');
     }
   }, 1000);
-  
+
   // Verify email service configuration
   setTimeout(async () => {
     await verifyEmailService();
@@ -202,16 +216,16 @@ server.listen(PORT, () => {
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
-  
+
   server.close(async () => {
     console.log('🔌 HTTP server closed');
-    
+
     try {
       await mongoose.connection.close();
       console.log('✅ MongoDB connection closed');
-      
+
       await closeRedis();
-      
+
       console.log('✅ Graceful shutdown complete');
       process.exit(0);
     } catch (err) {
@@ -219,7 +233,7 @@ const gracefulShutdown = async (signal) => {
       process.exit(1);
     }
   });
-  
+
   // Force shutdown after 10 seconds
   setTimeout(() => {
     console.error('⚠️  Forced shutdown after timeout');

@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, useRef, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 export const LikeCacheContext = createContext();
 
@@ -38,7 +39,7 @@ export const LikeCacheProvider = ({ children }) => {
         }
 
         cacheRef.current = validEntries;
-        console.log(`✅ Loaded ${Object.keys(validEntries).length} like statuses from cache`);
+        logger.log(`✅ Loaded ${Object.keys(validEntries).length} like statuses from cache`);
       }
     } catch (err) {
       console.error('Failed to load like cache from localStorage:', err);

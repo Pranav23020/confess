@@ -1,7 +1,8 @@
-import { useState, useCallback, useRef, useEffect, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { likesAPI } from '../api';
-import { LikeCacheContext } from '../context/LikeCacheContext';
+import { useLikeCache } from '../context/LikeCacheContext';
 import socket from '../utils/socket';
+import { logger } from '../utils/logger';
 
 /**
  * Custom hook for managing like state and actions
@@ -128,7 +129,7 @@ export const useLike = (
   const toggleLike = useCallback(async () => {
     // STRICT: Block if ANY request is in flight
     if (requestInFlightRef.current) {
-      console.log('⏸️ Request already in flight, blocking duplicate');
+      logger.log('⏸️ Request already in flight, blocking duplicate');
       return;
     }
 
@@ -139,7 +140,7 @@ export const useLike = (
       // Queue only ONE pending request (prevents duplicate queueing)
       if (!pendingRequestRef.current) {
         const delay = 300 - timeSinceLastRequest;
-        console.log(`⏳ Queueing request (${delay}ms delay)`);
+        logger.log(`⏳ Queueing request (${delay}ms delay)`);
         pendingRequestRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             pendingRequestRef.current = null;
@@ -147,14 +148,14 @@ export const useLike = (
           }
         }, delay);
       } else {
-        console.log('⏸️ Request already queued, ignoring duplicate');
+        logger.log('⏸️ Request already queued, ignoring duplicate');
       }
       return;
     }
 
     // LOCK: Set in-flight flag IMMEDIATELY before any async work
     requestInFlightRef.current = true;
-    console.log(`🔒 Request locked for confession: ${confessionId}`);
+    logger.log(`🔒 Request locked for confession: ${confessionId}`);
     setError(null);
 
     // Store current state for rollback
@@ -179,12 +180,12 @@ export const useLike = (
 
     try {
       // Sync with server in background (user doesn't wait)
-      console.log(`📡 Sending ${newLiked ? 'like' : 'unlike'} request...`);
+      logger.log(`📡 Sending ${newLiked ? 'like' : 'unlike'} request...`);
       const response = await likesAPI.toggle(confessionId);
 
       // Only update if component is still mounted
       if (!isMountedRef.current) {
-        console.log('⚠️ Component unmounted, ignoring response');
+        logger.log('⚠️ Component unmounted, ignoring response');
         return;
       }
 
@@ -192,7 +193,7 @@ export const useLike = (
       const serverLiked = response.data.liked;
       const serverLikeCount = response.data.likeCount;
 
-      console.log(`✅ Server confirmed: liked=${serverLiked}, count=${serverLikeCount}`);
+      logger.log(`✅ Server confirmed: liked=${serverLiked}, count=${serverLikeCount}`);
 
       setLiked(serverLiked);
       setLikeCount(serverLikeCount);
@@ -216,7 +217,7 @@ export const useLike = (
       }
 
       // Rollback to previous state on error
-      console.log('↩️ Rolling back to previous state');
+      logger.log('↩️ Rolling back to previous state');
       setLiked(prevState.liked);
       setLikeCount(prevState.likeCount);
 
@@ -239,7 +240,7 @@ export const useLike = (
     } finally {
       // UNLOCK: Always release the lock
       requestInFlightRef.current = false;
-      console.log(`🔓 Request unlocked for confession: ${confessionId}`);
+      logger.log(`🔓 Request unlocked for confession: ${confessionId}`);
     }
   }, [confessionId, liked, likeCount, onLikeChange, likeCache]);
 

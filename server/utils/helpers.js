@@ -8,7 +8,7 @@ function generateDeviceHash(req) {
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
   const userAgent = req.headers['user-agent'] || 'unknown';
   const secret = process.env.DEVICE_HASH_SECRET || 'default-secret';
-  
+
   const data = `${ip}-${userAgent}`;
   return crypto
     .createHmac('sha256', secret)
@@ -34,7 +34,7 @@ function getHoursRemaining(expiresAt) {
   const diffMs = expiresAt - now;
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   if (hours > 0) {
     return `${hours}h`;
   } else if (minutes > 0) {
@@ -44,11 +44,24 @@ function getHoursRemaining(expiresAt) {
   }
 }
 
+const validator = require('validator');
+
 /**
  * Sanitize text content
  */
 function sanitizeText(text) {
-  return text
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+
+  // Escape HTML to prevent XSS
+  // This converts <, >, &, ", and ' to their HTML identities
+  let sanitized = validator.escape(text);
+
+  // Convert basic formatting back if needed (optional, but keeping it strict for now)
+  // For now, we'll keep it strictly escaped for maximum security
+
+  return sanitized
     .trim()
     .replace(/\s+/g, ' ')
     .substring(0, 500);
