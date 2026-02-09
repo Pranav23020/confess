@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useContext } from 'react';
 import { likesAPI } from '../api';
 import { LikeCacheContext } from '../context/LikeCacheContext';
+import socket from '../utils/socket';
 
 /**
  * Custom hook for managing like state and actions
@@ -94,6 +95,30 @@ export const useLike = (
 
     syncWithServer();
   }, [confessionId, initialLikeCount, likeCache]);
+
+  /**
+   * Real-time WebSocket sync - Instagram-level live updates  
+   * Updates UI instantly when anyone likes/unlikes
+   */
+  useEffect(() => {
+    if (!confessionId) return;
+
+    const handleLikeUpdate = (data) => {
+      if (data.confessionId !== confessionId) return;
+      if (typeof data.likeCount === 'number' && isMountedRef.current) {
+        setLikeCount(data.likeCount);
+        if (likeCache) {
+          likeCache.setCachedLikeStatus(confessionId, liked, data.likeCount);
+        }
+        if (onLikeChange) {
+          onLikeChange(liked, data.likeCount);
+        }
+      }
+    };
+
+    socket.on('confession:engagement', handleLikeUpdate);
+    return () => socket.off('confession:engagement', handleLikeUpdate);
+  }, [confessionId, liked, likeCache, onLikeChange]);
 
   /**
    * INSTANT toggle like with optimistic updates

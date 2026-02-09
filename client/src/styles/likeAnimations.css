@@ -126,11 +126,43 @@
   }
   100% {
     filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.3));
+
+  /**
+   * Double-tap heart burst - Instagram style
+   * Scales up dramatically, then fades out
+   */
+  @keyframes heartBurst {
+    0% {
+      opacity: 0;
+      transform: scale(0) rotate(-10deg);
+    }
+    15% {
+      opacity: 1;
+      transform: scale(1.2) rotate(0deg);
+    }
+    30% {
+      opacity: 0.95;
+      transform: scale(1.4) rotate(5deg);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.5) rotate(-3deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.8) rotate(0deg);
+    }
+  }
   }
 }
 
 /* ============================================
    Utility Classes for Instagram-Style Animations
+
+  .animate-heart-burst {
+    animation: heartBurst 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    will-change: transform, opacity;
+  }
    ============================================ */
 
 .instagram-heart-pop {

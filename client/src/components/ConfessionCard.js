@@ -22,6 +22,12 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageScrollRef = useRef(null);
+  
+  // Double-tap to like state
+  const [showHeartBurst, setShowHeartBurst] = useState(false);
+  const [heartBurstPosition, setHeartBurstPosition] = useState({ x: 0, y: 0 });
+  const lastTapRef = useRef(0);
+  const tapTimeoutRef = useRef(null);
 
   const getGradientColors = (index) => {
     const gradients = [
@@ -60,6 +66,54 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
     }
     toggleLike();
   }, [user, navigate, toggleLike]);
+
+  /**
+   * Instagram-style double-tap to like
+   * Detects double tap with 300ms threshold
+   * Shows animated heart burst at tap position
+   * Only likes (doesn't unlike on double-tap)
+   */
+  const handleDoubleTap = useCallback((e) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+
+    // Double tap detected (within 300ms)
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      // Clear any pending single tap
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+      }
+
+      // Get tap position relative to card
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setHeartBurstPosition({ x, y });
+      setShowHeartBurst(true);
+
+      // Trigger like only if not already liked
+      if (!liked) {
+        toggleLike();
+      }
+
+      // Hide heart burst after animation
+      setTimeout(() => setShowHeartBurst(false), 1000);
+      
+      lastTapRef.current = 0; // Reset to prevent triple-tap
+    } else {
+      // Single tap - do nothing (card navigation handled by onClick)
+      lastTapRef.current = now;
+    }
+  }, [user, navigate, liked, toggleLike]);
 
   const getTimeAgo = (dateString) => {
     const posted = new Date(dateString);
@@ -103,6 +157,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
       <article 
         className="relative group cursor-pointer w-full h-full"
         onClick={() => navigate(`/confession/${confession._id}`)}
+        onDoubleClick={handleDoubleTap}
       >
         {/* Outer border glow - more subtle and precise */}
         <div className={`absolute -inset-[1px] bg-gradient-to-br ${getGradientColors(0)} rounded-[32px] opacity-30 group-hover:opacity-70 transition-opacity duration-700 blur-[3px]`} />
@@ -112,6 +167,29 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
         <div className="absolute inset-0 rounded-[32px] bg-white/90 dark:bg-white/[0.06] border border-white/10 shadow-md translate-x-1 translate-y-1 -z-10 pointer-events-none" />
 
         <div className="relative z-10 bg-gradient-to-br from-white via-white to-white dark:from-[#2a1f5f] dark:via-[#30246b] dark:to-[#3a2a78] rounded-[32px] p-6 sm:p-8 md:p-10 shadow-premium w-full h-[550px] sm:h-[600px] flex flex-col justify-between overflow-hidden transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl border border-white/10">
+        
+        {/* Instagram-style Double-Tap Heart Burst */}
+        {showHeartBurst && (
+          <div 
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: heartBurstPosition.x,
+              top: heartBurstPosition.y,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <span 
+              className="material-symbols-outlined text-[120px] text-red-500 animate-heart-burst filled"
+              style={{
+                textShadow: '0 0 30px rgba(239, 68, 68, 0.6)',
+                filter: 'drop-shadow(0 10px 20px rgba(239, 68, 68, 0.4))'
+              }}
+            >
+              favorite
+            </span>
+          </div>
+        )}
+        
         {/* Subtle inner ambient glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 
