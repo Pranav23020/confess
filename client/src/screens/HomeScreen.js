@@ -161,6 +161,31 @@ const HomeScreen = () => {
     }
   }, [currentCardIndex, confessions.length, hasMore, loadingMore, loading, page, fetchConfessions]);
 
+  // Memoized card navigation functions
+  const handleNextCard = useCallback(() => {
+    if (currentCardIndex < filteredConfessions.length - 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('left');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex + 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
+    }
+  }, [currentCardIndex, filteredConfessions.length, isTransitioning]);
+
+  const handlePrevCard = useCallback(() => {
+    if (currentCardIndex > 0 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('right');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex - 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
+    }
+  }, [currentCardIndex, isTransitioning]);
+
   // Global mouse move/up handlers for proper drag detection
   useEffect(() => {
     if (dragStart === null) return;
@@ -187,7 +212,7 @@ const HomeScreen = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragStart, draggedDistance, currentCardIndex, isTransitioning]);
+  }, [dragStart, draggedDistance, handleNextCard, handlePrevCard]);
 
   // Swipe handlers
   const handleMouseDown = (e) => {
@@ -213,30 +238,6 @@ const HomeScreen = () => {
     }
     setDragStart(null);
     setDraggedDistance(0);
-  };
-
-  const handleNextCard = () => {
-    if (currentCardIndex < filteredConfessions.length - 1 && !isTransitioning) {
-      setIsTransitioning(true);
-      setSlideDirection('left');
-      setTimeout(() => {
-        setCurrentCardIndex(currentCardIndex + 1);
-        setSlideDirection('');
-        setTimeout(() => setIsTransitioning(false), 50);
-      }, 300);
-    }
-  };
-
-  const handlePrevCard = () => {
-    if (currentCardIndex > 0 && !isTransitioning) {
-      setIsTransitioning(true);
-      setSlideDirection('right');
-      setTimeout(() => {
-        setCurrentCardIndex(currentCardIndex - 1);
-        setSlideDirection('');
-        setTimeout(() => setIsTransitioning(false), 50);
-      }, 300);
-    }
   };
 
 
