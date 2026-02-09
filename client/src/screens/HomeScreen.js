@@ -161,28 +161,37 @@ const HomeScreen = () => {
     }
   }, [currentCardIndex, confessions.length, hasMore, loadingMore, loading, page, fetchConfessions]);
 
+  // Global mouse move/up handlers for proper drag detection
+  useEffect(() => {
+    if (dragStart === null) return;
+
+    const handleMouseMove = (e) => {
+      setDraggedDistance(e.clientX - dragStart);
+    };
+
+    const handleMouseUp = () => {
+      const threshold = 35; // More responsive for desktop
+      if (draggedDistance > threshold) {
+        handlePrevCard();
+      } else if (draggedDistance < -threshold) {
+        handleNextCard();
+      }
+      setDragStart(null);
+      setDraggedDistance(0);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragStart, draggedDistance, currentCardIndex, isTransitioning]);
+
   // Swipe handlers
   const handleMouseDown = (e) => {
     setDragStart(e.clientX);
-  };
-
-  const handleMouseMove = (e) => {
-    if (dragStart === null) return;
-    setDraggedDistance(e.clientX - dragStart);
-  };
-
-  const handleMouseUp = () => {
-    if (dragStart === null) return;
-    const threshold = 50;
-    if (draggedDistance > threshold) {
-      // Swiped right
-      handlePrevCard();
-    } else if (draggedDistance < -threshold) {
-      // Swiped left
-      handleNextCard();
-    }
-    setDragStart(null);
-    setDraggedDistance(0);
   };
 
   const handleTouchStart = (e) => {
@@ -341,9 +350,6 @@ const HomeScreen = () => {
                 <div
                   ref={swipeRef}
                   onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
