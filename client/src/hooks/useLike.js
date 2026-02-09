@@ -26,7 +26,7 @@ export const useLike = (
   onLikeChange = null
 ) => {
   const likeCache = useContext(LikeCacheContext);
-  
+
   // State management - Initialize from cache or props (INSTANT, no API call)
   const [liked, setLiked] = useState(() => {
     if (likeCache) {
@@ -35,7 +35,7 @@ export const useLike = (
     }
     return initialLiked;
   });
-  
+
   const [likeCount, setLikeCount] = useState(() => {
     if (likeCache) {
       const cached = likeCache.getCachedLikeStatus(confessionId);
@@ -43,7 +43,7 @@ export const useLike = (
     }
     return initialLikeCount;
   });
-  
+
   const [error, setError] = useState(null);
 
   // Refs for strict request control
@@ -77,12 +77,12 @@ export const useLike = (
         if (isMountedRef.current) {
           const serverLiked = response.data.liked;
           const serverLikeCount = response.data.likeCount || initialLikeCount;
-          
+
           // Update cache
           if (likeCache) {
             likeCache.setCachedLikeStatus(confessionId, serverLiked, serverLikeCount);
           }
-          
+
           // Update state silently (no loading indicator)
           setLiked(serverLiked);
           setLikeCount(serverLikeCount);
@@ -123,33 +123,38 @@ export const useLike = (
   /**
    * INSTANT toggle like with optimistic updates
    * UI updates immediately, API syncs in background
-   * Fast 300ms debouncing prevents spam while feeling instant
+   * Improved debouncing and request queuing to prevent duplicates
    */
   const toggleLike = useCallback(async () => {
-    // Prevent multiple simultaneous requests
+    // STRICT: Block if ANY request is in flight
     if (requestInFlightRef.current) {
+      console.log('⏸️ Request already in flight, blocking duplicate');
       return;
     }
 
-    // Fast debounce: prevent requests within 300ms (faster than before)
+    // Improved debounce: prevent rapid-fire requests
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTimeRef.current;
     if (timeSinceLastRequest < 300) {
-      // Queue only one pending request
+      // Queue only ONE pending request (prevents duplicate queueing)
       if (!pendingRequestRef.current) {
         const delay = 300 - timeSinceLastRequest;
+        console.log(`⏳ Queueing request (${delay}ms delay)`);
         pendingRequestRef.current = setTimeout(() => {
           if (isMountedRef.current) {
+            pendingRequestRef.current = null;
             toggleLike();
           }
-          pendingRequestRef.current = null;
         }, delay);
+      } else {
+        console.log('⏸️ Request already queued, ignoring duplicate');
       }
       return;
     }
 
-    // Mark request as in flight immediately
+    // LOCK: Set in-flight flag IMMEDIATELY before any async work
     requestInFlightRef.current = true;
+    console.log(`🔒 Request locked for confession: ${confessionId}`);
     setError(null);
 
     // Store current state for rollback
@@ -174,36 +179,44 @@ export const useLike = (
 
     try {
       // Sync with server in background (user doesn't wait)
+      console.log(`📡 Sending ${newLiked ? 'like' : 'unlike'} request...`);
       const response = await likesAPI.toggle(confessionId);
 
       // Only update if component is still mounted
       if (!isMountedRef.current) {
+        console.log('⚠️ Component unmounted, ignoring response');
         return;
       }
 
       // Sync with server truth
-      setLiked(response.data.liked);
-      setLikeCount(response.data.likeCount);
+      const serverLiked = response.data.liked;
+      const serverLikeCount = response.data.likeCount;
+
+      console.log(`✅ Server confirmed: liked=${serverLiked}, count=${serverLikeCount}`);
+
+      setLiked(serverLiked);
+      setLikeCount(serverLikeCount);
 
       // Update cache with server truth
       if (likeCache) {
-        likeCache.setCachedLikeStatus(confessionId, response.data.liked, response.data.likeCount);
+        likeCache.setCachedLikeStatus(confessionId, serverLiked, serverLikeCount);
       }
 
       if (onLikeChange) {
-        onLikeChange(response.data.liked, response.data.likeCount);
+        onLikeChange(serverLiked, serverLikeCount);
       }
 
       setError(null);
       lastRequestTimeRef.current = Date.now();
     } catch (err) {
-      console.error('Failed to toggle like:', err);
+      console.error('❌ Failed to toggle like:', err);
 
       if (!isMountedRef.current) {
         return;
       }
 
       // Rollback to previous state on error
+      console.log('↩️ Rolling back to previous state');
       setLiked(prevState.liked);
       setLikeCount(prevState.likeCount);
 
@@ -224,7 +237,9 @@ export const useLike = (
       setError(errorMsg);
       lastRequestTimeRef.current = Date.now();
     } finally {
+      // UNLOCK: Always release the lock
       requestInFlightRef.current = false;
+      console.log(`🔓 Request unlocked for confession: ${confessionId}`);
     }
   }, [confessionId, liked, likeCount, onLikeChange, likeCache]);
 
