@@ -4,6 +4,7 @@ Allow: /confession/
 Allow: /explore
 Allow: /hashtags/
 Allow: /profile
+Allow: /new
 Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
