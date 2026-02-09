@@ -3,15 +3,22 @@ Allow: /
 Allow: /confession/
 Allow: /explore
 Allow: /hashtags/
+Allow: /profile
 Disallow: /login
 Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 Disallow: /admin
 Disallow: /api/
+Disallow: /?utm_
+Crawl-delay: 0
 
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 Sitemap: https://www.anonconfess.in/sitemap.xml
