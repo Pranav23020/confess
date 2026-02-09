@@ -26,7 +26,7 @@ export const useLike = (
   initialLiked = false,
   onLikeChange = null
 ) => {
-  const likeCache = useContext(LikeCacheContext);
+  const likeCache = useLikeCache();
 
   // State management - Initialize from cache or props (INSTANT, no API call)
   const [liked, setLiked] = useState(() => {

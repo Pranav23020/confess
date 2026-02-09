@@ -137,3 +137,5 @@ export const LikeCacheProvider = ({ children }) => {
     </LikeCacheContext.Provider>
   );
 };
+
+export const useLikeCache = () => useContext(LikeCacheContext);
