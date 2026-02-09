@@ -201,6 +201,7 @@ router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
+    const deviceHash = generateDeviceHash(req);
 
     const confessions = await Confession.find({
       expiresAt: { $gt: new Date() },
@@ -212,10 +213,21 @@ router.get('/', async (req, res) => {
       .select('-deviceHash')
       .lean();
 
-    // Add time remaining to each confession
+    // Get like status for each confession
+    const Like = require('../models/Like');
+    const confessionIds = confessions.map(c => c._id);
+    const userLikes = await Like.find({
+      confessionId: { $in: confessionIds },
+      deviceHash: deviceHash
+    }).lean();
+    
+    const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
+
+    // Add time remaining and liked status to each confession
     const confessionsWithTime = confessions.map(confession => ({
       ...confession,
-      hoursRemaining: getHoursRemaining(confession.expiresAt)
+      hoursRemaining: getHoursRemaining(confession.expiresAt),
+      liked: likedConfessionIds.has(confession._id.toString())
     }));
 
     const total = await Confession.countDocuments({

@@ -50,16 +50,50 @@ export const useLike = (
   const lastRequestTimeRef = useRef(0);
   const pendingRequestRef = useRef(null);
   const isMountedRef = useRef(true);
+  const hasInitialized = useRef(false);
 
   // Store previous state for rollback on error
   const previousStateRef = useRef({ liked, likeCount });
 
-  // Cache initial state on mount (INSTANT - no API call needed)
+  // Silently sync with server on mount (no loading state, updates in background)
   useEffect(() => {
-    if (likeCache && confessionId) {
-      likeCache.setCachedLikeStatus(confessionId, liked, likeCount);
-    }
-  }, [confessionId, likeCache, liked, likeCount]);
+    const syncWithServer = async () => {
+      if (hasInitialized.current || !confessionId) return;
+      hasInitialized.current = true;
+
+      // Check cache first
+      if (likeCache) {
+        const cached = likeCache.getCachedLikeStatus(confessionId);
+        if (cached) {
+          // Cache hit - already showing correct data, no need to fetch
+          return;
+        }
+      }
+
+      // Not in cache - fetch from server silently in background
+      try {
+        const response = await likesAPI.check(confessionId);
+        if (isMountedRef.current) {
+          const serverLiked = response.data.liked;
+          const serverLikeCount = response.data.likeCount || initialLikeCount;
+          
+          // Update cache
+          if (likeCache) {
+            likeCache.setCachedLikeStatus(confessionId, serverLiked, serverLikeCount);
+          }
+          
+          // Update state silently (no loading indicator)
+          setLiked(serverLiked);
+          setLikeCount(serverLikeCount);
+        }
+      } catch (err) {
+        console.error('Failed to sync like status:', err);
+        // Fail silently - user still sees optimistic state
+      }
+    };
+
+    syncWithServer();
+  }, [confessionId, initialLikeCount, likeCache]);
 
   /**
    * INSTANT toggle like with optimistic updates

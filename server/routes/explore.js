@@ -60,9 +60,20 @@ router.get('/search', async (req, res) => {
       .select('-deviceHash')
       .lean();
 
+    // Get like status for each confession
+    const Like = require('../models/Like');
+    const confessionIds = confessions.map(c => c._id);
+    const userLikes = await Like.find({
+      confessionId: { $in: confessionIds },
+      deviceHash: deviceHash
+    }).lean();
+    
+    const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
+
     const confessionsWithTime = confessions.map(confession => ({
       ...confession,
-      hoursRemaining: getHoursRemaining(confession.expiresAt)
+      hoursRemaining: getHoursRemaining(confession.expiresAt),
+      liked: likedConfessionIds.has(confession._id.toString())
     }));
 
     const total = await Confession.countDocuments(query);
@@ -117,10 +128,21 @@ router.get('/trending', async (req, res) => {
       .select('-deviceHash')
       .lean();
 
+    // Get like status for each confession
+    const Like = require('../models/Like');
+    const confessionIds = confessions.map(c => c._id);
+    const userLikes = await Like.find({
+      confessionId: { $in: confessionIds },
+      deviceHash: deviceHash
+    }).lean();
+    
+    const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
+
     const confessionsWithTime = confessions.map(confession => ({
       ...confession,
       hoursRemaining: getHoursRemaining(confession.expiresAt),
-      trendingScore: (confession.likeCount * 2) + (confession.replyCount * 3)
+      trendingScore: (confession.likeCount * 2) + (confession.replyCount * 3),
+      liked: likedConfessionIds.has(confession._id.toString())
     }));
 
     const total = await Confession.countDocuments(query);
@@ -155,65 +177,81 @@ router.get('/top-today', async (req, res) => {
 
     // Try to get from cache first (unique by type and limit)
     const cacheKey = `top-today:${type}:${limit}`;
+    let confessionsWithTime;
+
     if (isRedisConnected()) {
       try {
         const cachedData = await redis.get(cacheKey);
         if (cachedData) {
-          return res.json({
-            success: true,
-            confessions: JSON.parse(cachedData),
-            fromCache: true
-          });
+          confessionsWithTime = JSON.parse(cachedData);
         }
       } catch (redisErr) {
         console.warn('Redis read error:', redisErr);
       }
     }
 
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // If not cached, fetch from DB
+    if (!confessionsWithTime) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const blockedKeywords = await BlockedKeyword.find({ deviceHash }).select('keyword');
-    const blockedWords = blockedKeywords.map(k => k.keyword);
+      const blockedKeywords = await BlockedKeyword.find({ deviceHash }).select('keyword');
+      const blockedWords = blockedKeywords.map(k => k.keyword);
 
-    let query = {
-      createdAt: { $gte: today },
-      expiresAt: { $gt: now },
-      isHidden: false,
-      isPublished: true
-    };
+      let query = {
+        createdAt: { $gte: today },
+        expiresAt: { $gt: now },
+        isHidden: false,
+        isPublished: true
+      };
 
-    if (blockedWords.length > 0) {
-      query.text = { $not: { $regex: blockedWords.join('|'), $options: 'i' } };
-    }
+      if (blockedWords.length > 0) {
+        query.text = { $not: { $regex: blockedWords.join('|'), $options: 'i' } };
+      }
 
-    const sort = type === 'replies'
-      ? { replyCount: -1, likeCount: -1, createdAt: -1 }
-      : { likeCount: -1, replyCount: -1, createdAt: -1 };
+      const sort = type === 'replies'
+        ? { replyCount: -1, likeCount: -1, createdAt: -1 }
+        : { likeCount: -1, replyCount: -1, createdAt: -1 };
 
-    const confessions = await Confession.find(query)
-      .sort(sort)
-      .limit(parseInt(limit))
-      .select('-deviceHash')
-      .lean();
+      const confessions = await Confession.find(query)
+        .sort(sort)
+        .limit(parseInt(limit))
+        .select('-deviceHash')
+        .lean();
 
-    const confessionsWithTime = confessions.map(confession => ({
-      ...confession,
-      hoursRemaining: getHoursRemaining(confession.expiresAt)
-    }));
+      confessionsWithTime = confessions.map(confession => ({
+        ...confession,
+        hoursRemaining: getHoursRemaining(confession.expiresAt)
+      }));
 
-    // Cache the result for 10 minutes (600 seconds)
-    if (isRedisConnected()) {
-      try {
-        await redis.set(cacheKey, JSON.stringify(confessionsWithTime), 'EX', 600);
-      } catch (redisErr) {
-        console.warn('Redis write error:', redisErr);
+      // Cache the result for 10 minutes (600 seconds)
+      if (isRedisConnected()) {
+        try {
+          await redis.set(cacheKey, JSON.stringify(confessionsWithTime), 'EX', 600);
+        } catch (redisErr) {
+          console.warn('Redis write error:', redisErr);
+        }
       }
     }
 
+    // Add like status for this specific user (not cached)
+    const Like = require('../models/Like');
+    const confessionIds = confessionsWithTime.map(c => c._id);
+    const userLikes = await Like.find({
+      confessionId: { $in: confessionIds },
+      deviceHash: deviceHash
+    }).lean();
+    
+    const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
+
+    const confessionsWithLikes = confessionsWithTime.map(confession => ({
+      ...confession,
+      liked: likedConfessionIds.has(confession._id.toString())
+    }));
+
     res.json({
       success: true,
-      confessions: confessionsWithTime
+      confessions: confessionsWithLikes
     });
   } catch (error) {
     console.error('Error fetching top today confessions:', error);
@@ -227,51 +265,64 @@ router.get('/top-today', async (req, res) => {
  */
 router.get('/confession-of-the-day', async (req, res) => {
   try {
+    const deviceHash = generateDeviceHash(req);
     const cacheKey = 'confession-of-the-day';
+    let confessionWithTime;
+
     try {
       const cachedData = await redis.get(cacheKey);
       if (cachedData) {
-        return res.json({
-          success: true,
-          confession: JSON.parse(cachedData),
-          fromCache: true
-        });
+        confessionWithTime = JSON.parse(cachedData);
       }
     } catch (redisErr) {
       console.warn('Redis read error:', redisErr);
     }
 
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    if (!confessionWithTime) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const confession = await Confession.findOne({
-      createdAt: { $gte: oneDayAgo },
-      expiresAt: { $gt: new Date() },
-      isHidden: false,
-      isPublished: true
-    })
-      .sort({ likeCount: -1, replyCount: -1 })
-      .select('-deviceHash')
-      .lean();
+      const confession = await Confession.findOne({
+        createdAt: { $gte: oneDayAgo },
+        expiresAt: { $gt: new Date() },
+        isHidden: false,
+        isPublished: true
+      })
+        .sort({ likeCount: -1, replyCount: -1 })
+        .select('-deviceHash')
+        .lean();
 
-    if (!confession) {
-      return res.status(404).json({ error: { message: 'No confession of the day yet' } });
+      if (!confession) {
+        return res.status(404).json({ error: { message: 'No confession of the day yet' } });
+      }
+
+      confessionWithTime = {
+        ...confession,
+        hoursRemaining: getHoursRemaining(confession.expiresAt)
+      };
+
+      // Cache for 1 hour
+      try {
+        await redis.set(cacheKey, JSON.stringify(confessionWithTime), 'EX', 3600);
+      } catch (redisErr) {
+        console.warn('Redis write error:', redisErr);
+      }
     }
 
-    const confessionWithTime = {
-      ...confession,
-      hoursRemaining: getHoursRemaining(confession.expiresAt)
+    // Add like status for this specific user (not cached)
+    const Like = require('../models/Like');
+    const userLike = await Like.findOne({
+      confessionId: confessionWithTime._id,
+      deviceHash: deviceHash
+    }).lean();
+
+    const confessionWithLiked = {
+      ...confessionWithTime,
+      liked: !!userLike
     };
-
-    // Cache for 1 hour
-    try {
-      await redis.set(cacheKey, JSON.stringify(confessionWithTime), 'EX', 3600);
-    } catch (redisErr) {
-      console.warn('Redis write error:', redisErr);
-    }
 
     res.json({
       success: true,
-      confession: confessionWithTime
+      confession: confessionWithLiked
     });
   } catch (error) {
     console.error('Error fetching confession of the day:', error);
@@ -422,9 +473,20 @@ router.get('/categories/:category', async (req, res) => {
       .select('-deviceHash')
       .lean();
 
+    // Get like status for each confession
+    const Like = require('../models/Like');
+    const confessionIds = confessions.map(c => c._id);
+    const userLikes = await Like.find({
+      confessionId: { $in: confessionIds },
+      deviceHash: deviceHash
+    }).lean();
+    
+    const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
+
     const confessionsWithTime = confessions.map(confession => ({
       ...confession,
-      hoursRemaining: getHoursRemaining(confession.expiresAt)
+      hoursRemaining: getHoursRemaining(confession.expiresAt),
+      liked: likedConfessionIds.has(confession._id.toString())
     }));
 
     const total = await Confession.countDocuments(query);
