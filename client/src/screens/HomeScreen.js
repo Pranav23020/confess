@@ -36,6 +36,9 @@ const HomeScreen = () => {
   }, [selectedCategory]);
 
   useEffect(() => {
+    const socket = require('../utils/socket').default;
+
+    // Handle new confessions
     const handleNewConfession = (confession) => {
       // Only show/add if category matches or is 'all'
       if (categoryRef.current === 'all' || confession.category === categoryRef.current) {
@@ -51,13 +54,31 @@ const HomeScreen = () => {
       }
     };
 
-    const socket = require('../utils/socket').default;
+    // Handle confession deletions
+    const handleConfessionDeleted = (data) => {
+      const { confessionId } = data;
+      console.log(`🗑️ Confession deleted: ${confessionId}, removing from feed`);
+
+      // Remove the deleted confession from the list
+      setConfessions(prev => prev.filter(c => c._id !== confessionId));
+
+      // If we're currently viewing the deleted confession, move to the next/previous
+      setCurrentCardIndex(prevIndex => {
+        const newLength = confessions.length - 1;
+        if (newLength === 0) return 0;
+        if (prevIndex >= newLength) return newLength - 1;
+        return prevIndex;
+      });
+    };
+
     socket.on('confession:new', handleNewConfession);
+    socket.on('confession:deleted', handleConfessionDeleted);
 
     return () => {
       socket.off('confession:new', handleNewConfession);
+      socket.off('confession:deleted', handleConfessionDeleted);
     };
-  }, [page]); // Re-bind if page changes although we mostly care about page 1
+  }, [page, confessions.length]); // Re-bind if page changes or confessions length changes
 
   const storyChips = [
     { label: 'All', icon: 'apps', value: 'all', gradient: 'from-slate-400 to-slate-600' },
@@ -358,13 +379,11 @@ const HomeScreen = () => {
                 >
                   {/* Card Container */}
                   <div
-                    className={`w-full transition-all duration-300 ease-out ${
-                      dragStart ? 'cursor-grabbing' : 'cursor-grab'
-                    } ${
-                      slideDirection === 'left' ? 'animate-slide-out-left' : 
-                      slideDirection === 'right' ? 'animate-slide-out-right' : 
-                      'animate-slide-in'
-                    }`}
+                    className={`w-full transition-all duration-300 ease-out ${dragStart ? 'cursor-grabbing' : 'cursor-grab'
+                      } ${slideDirection === 'left' ? 'animate-slide-out-left' :
+                        slideDirection === 'right' ? 'animate-slide-out-right' :
+                          'animate-slide-in'
+                      }`}
                     style={{
                       transform: dragStart ? `translateX(${draggedDistance}px)` : 'translateX(0)',
                       opacity: slideDirection ? 0 : 1,
@@ -522,7 +541,7 @@ const HomeScreen = () => {
             to="/new"
             className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
           >
-           
+
           </Link>
         ) : (
           <Link

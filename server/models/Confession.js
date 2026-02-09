@@ -101,15 +101,9 @@ const confessionSchema = new mongoose.Schema({
   }
 });
 
-// Automatically delete replies when confession is deleted
-confessionSchema.pre('remove', async function (next) {
-  try {
-    await mongoose.model('Reply').deleteMany({ confessionId: this._id });
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+// Note: Cascade deletion (replies, likes, reports, images) is handled 
+// in the DELETE route (routes/confessions.js) for better control and logging
+
 
 // Add virtual for time remaining
 confessionSchema.virtual('hoursRemaining').get(function () {

@@ -220,7 +220,7 @@ router.get('/', async (req, res) => {
       confessionId: { $in: confessionIds },
       deviceHash: deviceHash
     }).lean();
-    
+
     const likedConfessionIds = new Set(userLikes.map(like => like.confessionId.toString()));
 
     // Add time remaining and liked status to each confession
@@ -309,7 +309,8 @@ router.get('/:id', async (req, res) => {
 
 /**
  * DELETE /api/confessions/:id
- * Delete a confession (if owner)
+ * Delete a confession (if owner) with complete cascade delete
+ * Deletes: confession, all replies, all likes, all reports, and all images
  * @access Private (requires login)
  */
 
@@ -337,11 +338,106 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ error: { message: 'You are not authorized to delete this confession' } });
     }
 
-    await confession.deleteOne();
+    console.log(`🗑️ Starting cascade deletion for confession ${confession._id}`);
 
-    res.json({ success: true, message: 'Confession deleted successfully' });
+    // === STEP 1: Delete all related database records ===
+
+    // Delete all likes associated with this confession
+    const Like = require('../models/Like');
+    const likesDeleted = await Like.deleteMany({ confessionId: confession._id });
+    console.log(`  ✅ Deleted ${likesDeleted.deletedCount} likes`);
+
+    // Delete all replies associated with this confession
+    const Reply = require('../models/Reply');
+    const repliesDeleted = await Reply.deleteMany({ confessionId: confession._id });
+    console.log(`  ✅ Deleted ${repliesDeleted.deletedCount} replies`);
+
+    // Delete all reports associated with this confession
+    const Report = require('../models/Report');
+    const reportsDeleted = await Report.deleteMany({
+      itemId: confession._id,
+      itemType: 'confession'
+    });
+    console.log(`  ✅ Deleted ${reportsDeleted.deletedCount} reports`);
+
+    // === STEP 2: Delete associated image files from filesystem ===
+    const fs = require('fs');
+    const path = require('path');
+    let imagesDeleted = 0;
+
+    // Get all image paths (both single image and images array)
+    const imagePaths = [];
+    if (confession.image) {
+      imagePaths.push(confession.image);
+    }
+    if (confession.images && confession.images.length > 0) {
+      imagePaths.push(...confession.images);
+    }
+
+    // Delete each image file
+    for (const imagePath of imagePaths) {
+      try {
+        // Convert relative path to absolute path
+        let absolutePath;
+        if (imagePath.startsWith('/uploads/')) {
+          absolutePath = path.join(__dirname, '..', imagePath);
+        } else if (imagePath.startsWith('uploads/')) {
+          absolutePath = path.join(__dirname, '..', imagePath);
+        } else {
+          // Full path or external URL
+          if (imagePath.startsWith('http')) {
+            console.log(`  ⏭️ Skipping external image: ${imagePath}`);
+            continue;
+          }
+          absolutePath = imagePath;
+        }
+
+        // Check if file exists and delete it
+        if (fs.existsSync(absolutePath)) {
+          fs.unlinkSync(absolutePath);
+          imagesDeleted++;
+          console.log(`  ✅ Deleted image: ${path.basename(absolutePath)}`);
+        } else {
+          console.log(`  ⚠️ Image not found: ${absolutePath}`);
+        }
+      } catch (imageError) {
+        console.error(`  ❌ Failed to delete image ${imagePath}:`, imageError.message);
+        // Continue with deletion even if image deletion fails
+      }
+    }
+
+    console.log(`  ✅ Deleted ${imagesDeleted} image files`);
+
+    // === STEP 3: Delete the confession document ===
+    await confession.deleteOne();
+    console.log(`  ✅ Deleted confession document`);
+
+    // === STEP 4: Emit real-time event for UI updates ===
+    try {
+      const io = require('../utils/socket').getIO();
+      io.emit('confession:deleted', {
+        confessionId: confession._id
+      });
+      console.log(`  ✅ Emitted deletion event via socket.io`);
+    } catch (ioErr) {
+      console.error('  ⚠️ Socket error emitting deletion event:', ioErr);
+    }
+
+    console.log(`✅ Cascade deletion completed for confession ${confession._id}`);
+
+    res.json({
+      success: true,
+      message: 'Confession and all related data deleted successfully',
+      details: {
+        confession: 1,
+        likes: likesDeleted.deletedCount,
+        replies: repliesDeleted.deletedCount,
+        reports: reportsDeleted.deletedCount,
+        images: imagesDeleted
+      }
+    });
   } catch (error) {
-    console.error('Error deleting confession:', error);
+    console.error('❌ Error deleting confession:', error);
     res.status(500).json({ error: { message: 'Failed to delete confession' } });
   }
 });
