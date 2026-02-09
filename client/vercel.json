@@ -1,9 +1,6 @@
 {
     "buildCommand": "npm run build",
     "installCommand": "npm install",
-    "env": {
-        "REACT_APP_API_URL": "@api_url"
-    },
     "rewrites": [
         {
             "source": "/:path((?!sitemap\\.xml|robots\\.txt|ads\\.txt|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.svg).*)",
