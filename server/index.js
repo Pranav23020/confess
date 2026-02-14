@@ -211,26 +211,6 @@ server.listen(PORT, () => {
   setTimeout(async () => {
     await verifyEmailService();
   }, 1500);
-
-  // Self-ping to keep Render free tier active
-  const keepAlive = () => {
-    const url = process.env.RENDER_EXTERNAL_URL;
-    if (!url) return; // Only run if external URL is available (production)
-
-    const interval = 14 * 60 * 1000; // 14 minutes
-    const https = require('https');
-
-    setInterval(() => {
-      https.get(url + '/api/health', (resp) => {
-        if (resp.statusCode === 200) {
-          // console.log('Keep-alive ping successful');
-        }
-      }).on('error', (err) => {
-        console.error('Keep-alive ping failed:', err.message);
-      });
-    }, interval);
-  };
-  keepAlive();
 });
 
 // Graceful shutdown
