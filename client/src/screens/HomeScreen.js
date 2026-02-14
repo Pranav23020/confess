@@ -461,17 +461,6 @@ const HomeScreen = () => {
                   )}
                 </div>
 
-                {/* Card Counter */}
-                <div className="flex items-center justify-center gap-2 mb-6 md:mb-8">
-                  <span className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400">
-                    {currentCardIndex + 1} / {filteredConfessions.length}
-                  </span>
-                  {loadingMore && (
-                    <span className="text-xs text-slate-500 dark:text-slate-500 animate-pulse">
-                      Loading more...
-                    </span>
-                  )}
-                </div>
 
                 {/* Progress Bar */}
                 <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 md:mb-8">
