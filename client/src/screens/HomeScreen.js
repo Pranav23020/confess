@@ -194,30 +194,36 @@ const HomeScreen = () => {
     }
   }, [currentCardIndex, confessions.length, hasMore, loadingMore, loading, page, fetchConfessions]);
 
-  // Memoized card navigation functions
+  // Memoized card navigation functions with infinite loop
   const handleNextCard = useCallback(() => {
-    if (currentCardIndex < filteredConfessions.length - 1 && !isTransitioning) {
+    if (!isTransitioning) {
       setIsTransitioning(true);
       setSlideDirection('left');
       setTimeout(() => {
-        setCurrentCardIndex(currentCardIndex + 1);
+        // Loop back to first card if at the end
+        setCurrentCardIndex((prevIndex) =>
+          prevIndex >= filteredConfessions.length - 1 ? 0 : prevIndex + 1
+        );
         setSlideDirection('');
         setTimeout(() => setIsTransitioning(false), 50);
       }, 300);
     }
-  }, [currentCardIndex, filteredConfessions.length, isTransitioning]);
+  }, [filteredConfessions.length, isTransitioning]);
 
   const handlePrevCard = useCallback(() => {
-    if (currentCardIndex > 0 && !isTransitioning) {
+    if (!isTransitioning) {
       setIsTransitioning(true);
       setSlideDirection('right');
       setTimeout(() => {
-        setCurrentCardIndex(currentCardIndex - 1);
+        // Loop to last card if at the beginning
+        setCurrentCardIndex((prevIndex) =>
+          prevIndex <= 0 ? filteredConfessions.length - 1 : prevIndex - 1
+        );
         setSlideDirection('');
         setTimeout(() => setIsTransitioning(false), 50);
       }, 300);
     }
-  }, [currentCardIndex, isTransitioning]);
+  }, [filteredConfessions.length, isTransitioning]);
 
   // Global mouse move/up handlers for proper drag detection
   useEffect(() => {
@@ -437,28 +443,24 @@ const HomeScreen = () => {
                   </div>
 
                   {/* Left Arrow - Desktop Only */}
-                  {currentCardIndex > 0 && (
-                    <button
-                      onClick={handlePrevCard}
-                      className="hidden md:flex absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
-                    >
-                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
-                        chevron_left
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    onClick={handlePrevCard}
+                    className="hidden md:flex absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                  >
+                    <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
+                      chevron_left
+                    </span>
+                  </button>
 
                   {/* Right Arrow - Desktop Only */}
-                  {currentCardIndex < filteredConfessions.length - 1 && (
-                    <button
-                      onClick={handleNextCard}
-                      className="hidden md:flex absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
-                    >
-                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
-                        chevron_right
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    onClick={handleNextCard}
+                    className="hidden md:flex absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                  >
+                    <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
+                      chevron_right
+                    </span>
+                  </button>
                 </div>
 
 
