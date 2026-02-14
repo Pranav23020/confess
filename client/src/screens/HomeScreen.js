@@ -273,6 +273,22 @@ const HomeScreen = () => {
     setDraggedDistance(0);
   };
 
+  // Keyboard navigation (Arrow keys) - Desktop Only
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevCard();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextCard();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrevCard, handleNextCard]);
+
 
 
 
@@ -390,222 +406,206 @@ const HomeScreen = () => {
               />
             ) : (
               <>
-                {/* Desktop Swiper View - Hidden on mobile */}
-                <div className="hidden md:block">
+                {/* Single Card Swiper - All Screens */}
+                <div
+                  ref={swipeRef}
+                  onMouseDown={handleMouseDown}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  className="relative w-full max-w-md lg:max-w-lg mx-auto mb-6 md:mb-8 h-[600px] lg:h-[650px] flex items-center justify-center overflow-hidden"
+                >
+                  {/* Card Container */}
                   <div
-                    ref={swipeRef}
-                    onMouseDown={handleMouseDown}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                    className="relative w-full max-w-md lg:max-w-lg mx-auto mb-6 md:mb-8 h-[600px] lg:h-[650px] flex items-center justify-center overflow-hidden"
+                    className={`w-full transition-all duration-300 ease-out ${dragStart ? 'cursor-grabbing' : 'cursor-grab'
+                      } ${slideDirection === 'left'
+                        ? 'animate-slide-out-left'
+                        : slideDirection === 'right'
+                          ? 'animate-slide-out-right'
+                          : 'animate-slide-in'
+                      }`}
+                    style={{
+                      transform: dragStart ? `translateX(${draggedDistance}px)` : 'translateX(0)',
+                      opacity: slideDirection ? 0 : 1,
+                    }}
                   >
-                    {/* Card Container */}
-                    <div
-                      className={`w-full transition-all duration-300 ease-out ${dragStart ? 'cursor-grabbing' : 'cursor-grab'
-                        } ${slideDirection === 'left'
-                          ? 'animate-slide-out-left'
-                          : slideDirection === 'right'
-                            ? 'animate-slide-out-right'
-                            : 'animate-slide-in'
-                        }`}
-                      style={{
-                        transform: dragStart ? `translateX(${draggedDistance}px)` : 'translateX(0)',
-                        opacity: slideDirection ? 0 : 1,
-                      }}
-                    >
-                      <ConfessionCard
-                        key={filteredConfessions[currentCardIndex]._id}
-                        confession={filteredConfessions[currentCardIndex]}
-                        showExpiry={false}
-                      />
-                    </div>
-
-                    {/* Left Arrow */}
-                    {currentCardIndex > 0 && (
-                      <button
-                        onClick={handlePrevCard}
-                        className="absolute left-0 lg:left-2 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-16 z-10 flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
-                      >
-                        <span className="material-symbols-outlined text-xl lg:text-2xl text-slate-900 dark:text-white">
-                          chevron_left
-                        </span>
-                      </button>
-                    )}
-
-                    {/* Right Arrow */}
-                    {currentCardIndex < filteredConfessions.length - 1 && (
-                      <button
-                        onClick={handleNextCard}
-                        className="absolute right-0 lg:right-2 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-16 z-10 flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
-                      >
-                        <span className="material-symbols-outlined text-xl lg:text-2xl text-slate-900 dark:text-white">
-                          chevron_right
-                        </span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Card Counter */}
-                  <div className="flex items-center justify-center gap-2 mb-6 md:mb-8">
-                    <span className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400">
-                      {currentCardIndex + 1} / {filteredConfessions.length}
-                    </span>
-                    {loadingMore && (
-                      <span className="text-xs text-slate-500 dark:text-slate-500 animate-pulse">
-                        Loading more...
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 md:mb-8">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-300"
-                      style={{
-                        width: `${((currentCardIndex + 1) / filteredConfessions.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Mobile Scrollable Feed - Hidden on desktop */}
-                <div className="md:hidden grid grid-cols-1 gap-6 sm:gap-8 pb-8">
-                  {filteredConfessions.map((confession) => (
                     <ConfessionCard
-                      key={confession._id}
-                      confession={confession}
+                      key={filteredConfessions[currentCardIndex]._id}
+                      confession={filteredConfessions[currentCardIndex]}
                       showExpiry={false}
                     />
-                  ))}
+                  </div>
 
-                  {loadingMore && (
-                    <div className="flex justify-center py-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
+                  {/* Left Arrow - Desktop Only */}
+                  {currentCardIndex > 0 && (
+                    <button
+                      onClick={handlePrevCard}
+                      className="hidden md:flex absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                    >
+                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
+                        chevron_left
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Right Arrow - Desktop Only */}
+                  {currentCardIndex < filteredConfessions.length - 1 && (
+                    <button
+                      onClick={handleNextCard}
+                      className="hidden md:flex absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-16 z-10 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                    >
+                      <span className="material-symbols-outlined text-xl sm:text-2xl text-slate-900 dark:text-white">
+                        chevron_right
+                      </span>
+                    </button>
                   )}
                 </div>
-              </>
+
+                {/* Card Counter */}
+                <div className="flex items-center justify-center gap-2 mb-6 md:mb-8">
+                  <span className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400">
+                    {currentCardIndex + 1} / {filteredConfessions.length}
+                  </span>
+                  {loadingMore && (
+                    <span className="text-xs text-slate-500 dark:text-slate-500 animate-pulse">
+                      Loading more...
+                    </span>
+                  )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 md:mb-8">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-300"
+                    style={{
+                      width: `${((currentCardIndex + 1) / filteredConfessions.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+          </>
             )}
-          </div>
-
-          <aside className="hidden xl:block w-72 xl:w-80 sticky top-20 h-fit">
-            <div className="bg-white dark:bg-surface-dark rounded-2xl xl:rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg dark:shadow-black/20 transition-all duration-500 hover:border-primary/20">
-              <div className="p-4 sm:p-5 md:p-6 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-                <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse flex-shrink-0"></span>
-                  Trending Today
-                </h3>
-              </div>
-              <div className="p-4 sm:p-5 md:p-6 space-y-6 md:space-y-8">
-                <div className="flex items-center justify-between p-3 sm:p-4 bg-primary/5 rounded-lg md:rounded-2xl border border-primary/10">
-                  <div className="flex flex-col min-w-0">
-                    <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-primary font-bold">Online Now</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Whispering live</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl font-bold text-primary flex-shrink-0">{activeCount}</span>
-                </div>
-                {trendingLoading ? (
-                  <div className="space-y-3 md:space-y-4">
-                    {[0, 1, 2].map((i) => (
-                      <div key={i} className="h-14 sm:h-16 bg-slate-100 dark:bg-white/5 rounded-lg md:rounded-2xl animate-pulse"></div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-6 md:space-y-8">
-                    <div>
-                      <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                        <span className="material-symbols-outlined text-primary text-[16px] sm:text-[18px]">favorite</span>
-                        <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-500 font-bold">Most Hearted</p>
-                      </div>
-                      <div className="space-y-2 sm:space-y-3 md:space-y-4">
-                        {topLiked.length === 0 ? (
-                          <p className="text-xs text-slate-500 dark:text-slate-500 italic px-2 py-3">Silence is golden...</p>
-                        ) : (
-                          topLiked.map((item) => (
-                            <Link
-                              key={item._id}
-                              to={`/confession/${item._id}`}
-                              className="group block w-full text-left p-3 sm:p-4 rounded-lg md:rounded-2xl bg-slate-50 dark:bg-white/[0.03] hover:bg-primary/[0.08] border border-transparent hover:border-primary/10 transition-all duration-300 active:scale-95"
-                            >
-                              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 line-clamp-2 font-medium leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                                {truncateText(item.text, 80)}
-                              </p>
-                              <div className="mt-2 sm:mt-3 flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-primary opacity-80 uppercase tracking-wider">
-                                <span>{item.likeCount || 0} HEARTS</span>
-                              </div>
-                            </Link>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                        <span className="material-symbols-outlined text-purple-500 text-[16px] sm:text-[18px]">forum</span>
-                        <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-500 font-bold">Most Echoed</p>
-                      </div>
-                      <div className="space-y-2 sm:space-y-3 md:space-y-4">
-                        {topReplied.length === 0 ? (
-                          <p className="text-xs text-slate-500 dark:text-slate-500 italic px-2 py-3">Waiting for echoes...</p>
-                        ) : (
-                          topReplied.map((item) => (
-                            <Link
-                              key={item._id}
-                              to={`/confession/${item._id}`}
-                              className="group block w-full text-left p-3 sm:p-4 rounded-lg md:rounded-2xl bg-slate-50 dark:bg-white/[0.03] hover:bg-purple-500/[0.08] border border-transparent hover:border-purple-500/10 transition-all duration-300 active:scale-95"
-                            >
-                              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 line-clamp-2 font-medium leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                                {truncateText(item.text, 80)}
-                              </p>
-                              <div className="mt-2 sm:mt-3 flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-purple-500 opacity-80 uppercase tracking-wider">
-                                <span>{item.replyCount || 0} ECHOES</span>
-                              </div>
-                            </Link>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="p-4 sm:p-5 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
-                <div className="flex flex-wrap gap-x-2 sm:gap-x-3 gap-y-2 text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
-                  <button type="button" className="hover:text-primary transition-colors">About</button>
-                  <span className="opacity-30">/</span>
-                  <button type="button" className="hover:text-primary transition-colors">Help</button>
-                  <span className="opacity-30">/</span>
-                  <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
-                  <span className="opacity-30">/</span>
-                  <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
-                </div>
-                <p className="text-[9px] sm:text-[10px] text-slate-500/60 dark:text-slate-600/60 mt-4 font-bold uppercase tracking-[0.1em]">© 2026</p>
-              </div>
-            </div>
-          </aside>
         </div>
-      </main>
 
-      {/* FAB - Mobile Only */}
-      <div className="md:hidden fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-50">
-        {canPost ? (
+        <aside className="hidden xl:block w-72 xl:w-80 sticky top-20 h-fit">
+          <div className="bg-white dark:bg-surface-dark rounded-2xl xl:rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg dark:shadow-black/20 transition-all duration-500 hover:border-primary/20">
+            <div className="p-4 sm:p-5 md:p-6 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+              <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse flex-shrink-0"></span>
+                Trending Today
+              </h3>
+            </div>
+            <div className="p-4 sm:p-5 md:p-6 space-y-6 md:space-y-8">
+              <div className="flex items-center justify-between p-3 sm:p-4 bg-primary/5 rounded-lg md:rounded-2xl border border-primary/10">
+                <div className="flex flex-col min-w-0">
+                  <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-primary font-bold">Online Now</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Whispering live</p>
+                </div>
+                <span className="text-xl sm:text-2xl font-bold text-primary flex-shrink-0">{activeCount}</span>
+              </div>
+              {trendingLoading ? (
+                <div className="space-y-3 md:space-y-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-14 sm:h-16 bg-slate-100 dark:bg-white/5 rounded-lg md:rounded-2xl animate-pulse"></div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6 md:space-y-8">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <span className="material-symbols-outlined text-primary text-[16px] sm:text-[18px]">favorite</span>
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-500 font-bold">Most Hearted</p>
+                    </div>
+                    <div className="space-y-2 sm:space-y-3 md:space-y-4">
+                      {topLiked.length === 0 ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-500 italic px-2 py-3">Silence is golden...</p>
+                      ) : (
+                        topLiked.map((item) => (
+                          <Link
+                            key={item._id}
+                            to={`/confession/${item._id}`}
+                            className="group block w-full text-left p-3 sm:p-4 rounded-lg md:rounded-2xl bg-slate-50 dark:bg-white/[0.03] hover:bg-primary/[0.08] border border-transparent hover:border-primary/10 transition-all duration-300 active:scale-95"
+                          >
+                            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 line-clamp-2 font-medium leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                              {truncateText(item.text, 80)}
+                            </p>
+                            <div className="mt-2 sm:mt-3 flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-primary opacity-80 uppercase tracking-wider">
+                              <span>{item.likeCount || 0} HEARTS</span>
+                            </div>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <span className="material-symbols-outlined text-purple-500 text-[16px] sm:text-[18px]">forum</span>
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-500 font-bold">Most Echoed</p>
+                    </div>
+                    <div className="space-y-2 sm:space-y-3 md:space-y-4">
+                      {topReplied.length === 0 ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-500 italic px-2 py-3">Waiting for echoes...</p>
+                      ) : (
+                        topReplied.map((item) => (
+                          <Link
+                            key={item._id}
+                            to={`/confession/${item._id}`}
+                            className="group block w-full text-left p-3 sm:p-4 rounded-lg md:rounded-2xl bg-slate-50 dark:bg-white/[0.03] hover:bg-purple-500/[0.08] border border-transparent hover:border-purple-500/10 transition-all duration-300 active:scale-95"
+                          >
+                            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 line-clamp-2 font-medium leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                              {truncateText(item.text, 80)}
+                            </p>
+                            <div className="mt-2 sm:mt-3 flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-purple-500 opacity-80 uppercase tracking-wider">
+                              <span>{item.replyCount || 0} ECHOES</span>
+                            </div>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-4 sm:p-5 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
+              <div className="flex flex-wrap gap-x-2 sm:gap-x-3 gap-y-2 text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
+                <button type="button" className="hover:text-primary transition-colors">About</button>
+                <span className="opacity-30">/</span>
+                <button type="button" className="hover:text-primary transition-colors">Help</button>
+                <span className="opacity-30">/</span>
+                <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+                <span className="opacity-30">/</span>
+                <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+              </div>
+              <p className="text-[9px] sm:text-[10px] text-slate-500/60 dark:text-slate-600/60 mt-4 font-bold uppercase tracking-[0.1em]">© 2026</p>
+            </div>
+          </div>
+        </aside>
+    </div>
+      </main >
+
+  {/* FAB - Mobile Only */ }
+  < div className = "md:hidden fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-50" >
+  {
+    canPost?(
           <Link
-            to="/new"
-            className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
-          >
+            to = "/new"
+            className = "group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
+        >
 
           </Link>
         ) : (
-          <Link
-            to="/limit-reached"
-            className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-slate-400 dark:bg-slate-600 rounded-2xl shadow-lg shadow-slate-400/40 text-white transition-all duration-300 hover:scale-110 active:scale-95"
-          >
-            <span className="material-symbols-outlined text-2xl sm:text-3xl">block</span>
-          </Link>
-        )}
-      </div>
+  <Link
+    to="/limit-reached"
+    className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-slate-400 dark:bg-slate-600 rounded-2xl shadow-lg shadow-slate-400/40 text-white transition-all duration-300 hover:scale-110 active:scale-95"
+  >
+    <span className="material-symbols-outlined text-2xl sm:text-3xl">block</span>
+  </Link>
+)}
+      </div >
 
-      <BottomNav active="home" />
-    </div>
+  <BottomNav active="home" />
+    </div >
   );
 };
 
