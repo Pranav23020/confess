@@ -462,16 +462,6 @@ const HomeScreen = () => {
                 </div>
 
 
-                {/* Progress Bar */}
-                <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 md:mb-8">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-300"
-                    style={{
-                      width: `${((currentCardIndex + 1) / filteredConfessions.length) * 100}%`,
-                    }}
-                  />
-                </div>
-
               </>
             )}
           </div>
