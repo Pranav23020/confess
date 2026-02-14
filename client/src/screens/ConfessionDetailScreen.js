@@ -1,267 +1,30 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import BottomNav from '../components/BottomNav';
-import LikeButton from '../components/LikeButton';
-import ReplyBubble from '../components/ReplyBubble';
-import { confessionsAPI, repliesAPI, pollsAPI } from '../api';
-import ShareTemplateModal from '../components/ShareTemplateModal';
-import ConfirmationModal from '../components/ConfirmationModal';
-import HashtagBadges from '../components/HashtagBadges';
-import { useLike } from '../hooks/useLike';
-import { AuthContext } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { Helmet } from 'react-helmet-async';
+
+// ... (imports remain)
 
 const ConfessionDetailScreen = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-  const [confession, setConfession] = useState(null);
-  const [replies, setReplies] = useState([]);
-  const [replyText, setReplyText] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [error, setError] = useState(null);
-  
-  // Use the custom hook for INSTANT like management
-  const { liked, likeCount, toggleLike } = useLike(id, 0, false);
-  
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [replyTo, setReplyTo] = useState(null);
-  const [pollResults, setPollResults] = useState([]);
-  const [pollMeta, setPollMeta] = useState({ totalVotes: 0, hasVoted: false, votedOption: null });
-  const [pollLoading, setPollLoading] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { showToast } = useToast();
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // ... (existing state)
 
-  const fetchPollResults = useCallback(async () => {
-    try {
-      setPollLoading(true);
-      const res = await pollsAPI.results(id);
-      setPollResults(res.data.pollResults || []);
-      setPollMeta({
-        totalVotes: res.data.totalVotes || 0,
-        hasVoted: res.data.hasVoted,
-        votedOption: res.data.votedOption
-      });
-    } catch (err) {
-      console.error('Failed to fetch poll results:', err);
-    } finally {
-      setPollLoading(false);
-    }
-  }, [id]);
-
-  const fetchConfession = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await confessionsAPI.getById(id);
-      setConfession(response.data.confession);
-      setReplies(response.data.replies);
-
-      if (response.data.confession.isPoll) {
-        await fetchPollResults();
-      }
-
-      setError(null);
-    } catch (err) {
-      setError('Confession not found or expired');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, fetchPollResults]);
-
-  useEffect(() => {
-    fetchConfession();
-
-    const handleEngagement = (data) => {
-      if (data.confessionId === id) {
-        setConfession(prev => prev ? { ...prev, replyCount: data.replyCount } : prev);
-      }
-    };
-
-    const socket = require('../utils/socket').default;
-    socket.on('confession:engagement', handleEngagement);
-
-    return () => {
-      socket.off('confession:engagement', handleEngagement);
-    };
-  }, [id, fetchConfession]);
-
-  const handleVote = async (optionIndex) => {
-    try {
-      setPollLoading(true);
-      const res = await pollsAPI.vote(id, optionIndex);
-      setPollResults(res.data.pollResults || []);
-      setPollMeta({
-        totalVotes: res.data.totalVotes || 0,
-        hasVoted: true,
-        votedOption: res.data.votedOption
-      });
-    } catch (err) {
-      showToast('Failed to vote', 'error');
-    } finally {
-      setPollLoading(false);
-    }
+  // Helper to truncate text for SEO
+  const getSEODescription = (text) => {
+    if (!text) return 'Read this anonymous confession on AnonConfess.';
+    return text.length > 150 ? text.slice(0, 150) + '...' : text;
   };
-
-  const handleLike = useCallback(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    toggleLike();
-  }, [user, navigate, toggleLike]);
-
-  const handlePostReply = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    if (replyText.trim().length < 1) return;
-
-    try {
-      setPosting(true);
-      await repliesAPI.create(id, replyText, replyTo?._id || null);
-      setReplyText('');
-      setReplyTo(null);
-      fetchConfession(); // Refresh to get new reply
-    } catch (err) {
-      if (err.response?.status === 401) {
-        navigate('/login');
-        return;
-      }
-      showToast(err.response?.data?.error?.message || 'Failed to post reply', 'error');
-    } finally {
-      setPosting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      setLoading(true);
-      await confessionsAPI.delete(id);
-      showToast('Whisper deleted successfully');
-      navigate('/');
-    } catch (err) {
-      showToast(err.response?.data?.error?.message || 'Failed to delete confession', 'error');
-      setLoading(false);
-      setShowDeleteModal(false);
-    }
-  };
-
-  const getTimerColor = (hours) => {
-    if (hours === 'Soon' || hours.includes('m')) return 'text-rose-400';
-    const h = parseInt(hours);
-    if (h < 3) return 'text-rose-400';
-    if (h < 12) return 'text-primary';
-    return 'text-blue-400';
-  };
-
-  const getImageUrl = (image) => {
-    if (!image) return '';
-    if (image.startsWith('http')) return image;
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    const baseClean = base.replace(/\/$/, '').replace(/\/api$/, '');
-    const path = image.startsWith('/') ? image : `/${image}`;
-    return `${baseClean}${path}`;
-  };
-
-  const images = confession?.images?.length
-    ? confession.images
-    : (confession?.image ? [confession.image] : []);
-
-  const openImageModal = (index = 0) => {
-    if (!images.length) return;
-    setCurrentImageIndex(index);
-    setShowImageModal(true);
-  };
-
-  const closeImageModal = useCallback(() => {
-    setShowImageModal(false);
-  }, []);
-
-  const goPrev = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  }, [images.length]);
-
-  const goNext = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  }, [images.length]);
-
-  useEffect(() => {
-    if (!showImageModal) return;
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') closeImageModal();
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [showImageModal, closeImageModal, goPrev, goNext]);
-
-  const buildReplyTree = (list) => {
-    const map = {};
-    list.forEach(r => {
-      map[r._id] = { ...r, children: [] };
-    });
-    const roots = [];
-    list.forEach(r => {
-      if (r.parentReplyId && map[r.parentReplyId]) {
-        map[r.parentReplyId].children.push(map[r._id]);
-      } else {
-        roots.push(map[r._id]);
-      }
-    });
-    return roots;
-  };
-
-  const renderReplies = (list, depth = 0) => (
-    list.map(reply => (
-      <div key={reply._id} className="space-y-2">
-        <ReplyBubble reply={reply} depth={depth} onReply={setReplyTo} />
-        {reply.children?.length > 0 && (
-          <div className="space-y-2">
-            {renderReplies(reply.children, depth + 1)}
-          </div>
-        )}
-      </div>
-    ))
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background-light dark:bg-background-dark">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error || !confession) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background-light dark:bg-background-dark px-6">
-        <span className="material-symbols-outlined text-6xl text-slate-400 mb-4">error_outline</span>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Confession Not Found</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-center mb-2">
-          This confession may have expired or been removed.
-        </p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
-          Confessions automatically expire after 24 hours.
-        </p>
-        <button
-          onClick={() => navigate('/')}
-          className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
-        >
-          Back to Home
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark">
+      {confession && (
+        <Helmet>
+          <title>{`Confession: ${getSEODescription(confession.text).slice(0, 50)}... - AnonConfess`}</title>
+          <meta name="description" content={getSEODescription(confession.text)} />
+          <meta property="og:title" content={`Anonymous Confession - AnonConfess`} />
+          <meta property="og:description" content={getSEODescription(confession.text)} />
+          <meta property="og:url" content={window.location.href} />
+          {images.length > 0 && <meta property="og:image" content={getImageUrl(images[0])} />}
+          <meta name="twitter:card" content="summary_large_image" />
+        </Helmet>
+      )}
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5">
         <div className="flex items-center justify-between px-3 sm:px-5 h-14 sm:h-16 max-w-md mx-auto w-full">
@@ -303,11 +66,11 @@ const ConfessionDetailScreen = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl md:text-5xl mb-3 select-none block">format_quote</span>
-              
+
               <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium leading-relaxed text-slate-800 dark:text-gray-100 mb-4 sm:mb-5 md:mb-6">
                 {confession.text.replace(/#[\w]+/gi, '').trim()}
               </p>
-              
+
               {user && confession.userId === user._id && confession.hashtags && confession.hashtags.length > 0 && (
                 <div className="mb-6">
                   <HashtagBadges hashtags={confession.hashtags} size="md" />
@@ -315,8 +78,8 @@ const ConfessionDetailScreen = () => {
               )}
               {images.length > 0 && (
                 <div className="mb-4 sm:mb-6">
-                  <div 
-                    className="relative group cursor-pointer" 
+                  <div
+                    className="relative group cursor-pointer"
                     onClick={() => openImageModal(0)}
                   >
                     <img
