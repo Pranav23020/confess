@@ -1,13 +1,8 @@
 // Template generator for creating shareable confession images
 
 export const TEMPLATE_TYPES = {
-  GRADIENT: 'gradient',
-  DARK: 'dark',
-  MINIMAL: 'minimal',
-  COLORFUL: 'colorful',
-  NEON: 'neon',
-  AESTHETIC: 'aesthetic',
-  POETIC: 'poetic'
+  POETIC: 'poetic',
+  INSTAGRAM: 'instagram'
 };
 
 const TEMPLATES = {
@@ -17,44 +12,12 @@ const TEMPLATES = {
     textColor: '#1a1a1a',
     icon: '✒️'
   },
-  [TEMPLATE_TYPES.GRADIENT]: {
-    name: 'Gradient',
+  [TEMPLATE_TYPES.INSTAGRAM]: {
+    name: 'Instagram',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     textColor: '#ffffff',
-    icon: '🌈'
-  },
-  [TEMPLATE_TYPES.DARK]: {
-    name: 'Dark Mode',
-    background: '#1a1a1a',
-    textColor: '#ffffff',
-    accentColor: '#8b5cf6',
-    icon: '🌙'
-  },
-  [TEMPLATE_TYPES.MINIMAL]: {
-    name: 'Minimal',
-    background: '#ffffff',
-    textColor: '#1a1a1a',
-    accentColor: '#3b82f6',
-    icon: '✨'
-  },
-  [TEMPLATE_TYPES.COLORFUL]: {
-    name: 'Colorful',
-    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    textColor: '#ffffff',
-    icon: '🎨'
-  },
-  [TEMPLATE_TYPES.NEON]: {
-    name: 'Neon',
-    background: '#000000',
-    textColor: '#00ff88',
-    accentColor: '#ff00ff',
-    icon: '⚡'
-  },
-  [TEMPLATE_TYPES.AESTHETIC]: {
-    name: 'Aesthetic',
-    background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-    textColor: '#5a3e2b',
-    icon: '🌸'
+    accentColor: '#ffd700',
+    icon: '📸'
   }
 };
 
@@ -78,8 +41,23 @@ const wrapText = (ctx, text, maxWidth) => {
   return lines;
 };
 
-export const generateTemplate = async (confessionText, templateType = TEMPLATE_TYPES.GRADIENT, options = {}) => {
-  const template = TEMPLATES[templateType];
+// Helper to draw rounded rectangle
+const roundRect = (ctx, x, y, width, height, radius) => {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+};
+
+export const generateTemplate = async (confessionText, templateType = TEMPLATE_TYPES.INSTAGRAM, options = {}) => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -87,7 +65,7 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
   canvas.width = 1080;
   canvas.height = 1920;
 
-  // Handle POETIC template specifically for the requested aesthetic
+  // Handle POETIC template
   if (templateType === TEMPLATE_TYPES.POETIC) {
     // 1. Clean White Background
     ctx.fillStyle = '#ffffff';
@@ -123,13 +101,13 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
       ctx.fillText(line, startX, startY + (i * lineHeight));
     });
 
-    // 6. Simple Footer (no extra decorations)
+    // 6. Simple Footer
     ctx.font = 'italic 40px Georgia, "Times New Roman", serif';
     ctx.fillStyle = '#666666'; // Muted grey
     ctx.textAlign = 'center';
 
-    // Format: "date | anon.confess"
-    const footerText = 'anon.confess';
+    // Format: "date | anonconfess.in"
+    const footerText = 'anonconfess.in';
     const date = new Date();
     const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
     ctx.fillText(`${dateStr} | ${footerText}`, canvas.width / 2, startY + totalTextHeight + 150);
@@ -137,93 +115,105 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     return canvas;
   }
 
-  // Apply background
-  if (template.background.startsWith('linear-gradient')) {
-    // Extract gradient colors
-    const gradientMatch = template.background.match(/#[0-9a-f]{6}/gi);
-    if (gradientMatch && gradientMatch.length >= 2) {
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, gradientMatch[0]);
-      gradient.addColorStop(1, gradientMatch[1]);
-      ctx.fillStyle = gradient;
-    }
-  } else {
-    ctx.fillStyle = template.background;
-  }
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Handle INSTAGRAM template (New Aesthetic)
+  if (templateType === TEMPLATE_TYPES.INSTAGRAM) {
+    // 1. Vibrant Gradient Background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    // Deep purple to bright pink/orange sunset vibe
+    gradient.addColorStop(0, '#2E0249');   // Deep Purple
+    gradient.addColorStop(0.5, '#A91079'); // Magenta
+    gradient.addColorStop(1, '#F806CC');   // Pink
 
-  // Add decorative elements based on template
-  if (templateType === TEMPLATE_TYPES.NEON) {
-    // Add neon glow effect
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = template.accentColor;
-  }
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Add top decoration
-  ctx.fillStyle = template.accentColor || 'rgba(255, 255, 255, 0.2)';
-  ctx.fillRect(80, 150, 920, 6);
+    // Add subtle noise/texture (optional, simulated with semi-transparent shapes)
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.beginPath();
+    ctx.arc(0, 0, 800, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(canvas.width, canvas.height, 600, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
 
-  // Add logo/branding at top
-  ctx.font = 'bold 48px Arial';
-  ctx.fillStyle = template.textColor;
-  ctx.textAlign = 'center';
-  ctx.fillText('🤫 Anonymous Confession', canvas.width / 2, 120);
+    // 2. Glassmorphism Card
+    const margin = 100;
+    const cardWidth = canvas.width - (margin * 2);
 
-  // Reset shadow
-  ctx.shadowBlur = 0;
+    // Calculate text height first to determine card height
+    ctx.font = '600 56px "Inter", "Segoe UI", Arial, sans-serif'; // Modern sans-serif
+    const textPadding = 100;
+    const maxTextWidth = cardWidth - (textPadding * 2);
+    const lines = wrapText(ctx, confessionText, maxTextWidth);
+    const lineHeight = 84;
+    const textBlockHeight = lines.length * lineHeight;
 
-  // Calculate text positioning
-  const padding = 100;
-  const maxWidth = canvas.width - (padding * 2);
+    // Minimum card height, but expand if text is long
+    const minCardHeight = 800;
+    const cardHeight = Math.max(minCardHeight, textBlockHeight + 500); // 500 for padding + header/footer
 
-  // Prepare confession text
-  ctx.font = '600 52px Arial';
-  ctx.fillStyle = template.textColor;
-  ctx.textAlign = 'center';
+    const cardX = margin;
+    const cardY = (canvas.height - cardHeight) / 2;
+    const cornerRadius = 60;
 
-  // Wrap text
-  const lines = wrapText(ctx, confessionText, maxWidth);
-  const lineHeight = 72;
-  const textBlockHeight = lines.length * lineHeight;
-  const startY = (canvas.height - textBlockHeight) / 2;
+    // Card Shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 50;
+    ctx.shadowOffsetY = 20;
 
-  // Draw confession text with quote marks
-  ctx.font = 'bold 120px Georgia';
-  ctx.fillText('"', canvas.width / 2 - 450, startY - 40);
+    // Card Backdrop (Glass effect base)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    roundRect(ctx, cardX, cardY, cardWidth, cardHeight, cornerRadius);
 
-  ctx.font = '600 52px Arial';
-  lines.forEach((line, index) => {
-    ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
-  });
+    // Reset Shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
 
-  ctx.font = 'bold 120px Georgia';
-  ctx.fillText('"', canvas.width / 2 + 450, startY + textBlockHeight + 80);
+    // Card Border (Thick, whiteish)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-  // Add decorative element at bottom
-  if (templateType === TEMPLATE_TYPES.AESTHETIC || templateType === TEMPLATE_TYPES.COLORFUL) {
-    // Add soft circles
-    ctx.globalAlpha = 0.3;
+    // 3. Card Content
+
+    // "Anonymous Confession" Header inside card
+    ctx.font = '700 36px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.textAlign = 'center';
+    ctx.fillText('ANONYMOUS MESSAGE', canvas.width / 2, cardY + 100);
+
+    // Decorative divider
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.beginPath();
-    ctx.arc(200, canvas.height - 200, 150, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(canvas.width - 200, canvas.height - 300, 200, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.fillRect(cardX + 150, cardY + 140, cardWidth - 300, 2);
+
+    // Main Quote
+    ctx.font = '600 56px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+
+    // Center text vertically in the available space between header and footer
+    const contentCenterY = cardY + (cardHeight / 2);
+    const textStartY = contentCenterY - (textBlockHeight / 2) + 20; // Slight adjustment
+
+    lines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, textStartY + (i * lineHeight));
+    });
+
+    // 4. Branding Footer
+    ctx.font = '500 42px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('anonconfess.in', canvas.width / 2, cardY + cardHeight - 80);
+
+    // External decoration (bottom of screen)
+    ctx.font = '400 32px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillText('Tap to send your own', canvas.width / 2, canvas.height - 150);
+
+    return canvas;
   }
-
-  // Add watermark at bottom
-  ctx.font = '36px Arial';
-  ctx.fillStyle = template.textColor;
-  ctx.globalAlpha = 0.7;
-  ctx.textAlign = 'center';
-  ctx.fillText('Share your confession anonymously', canvas.width / 2, canvas.height - 100);
-  ctx.globalAlpha = 1;
-
-  // Add accent line at bottom
-  ctx.fillStyle = template.accentColor || 'rgba(255, 255, 255, 0.2)';
-  ctx.fillRect(80, canvas.height - 150, 920, 6);
 
   return canvas;
 };
