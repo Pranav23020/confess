@@ -4,7 +4,7 @@ import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, shareTemplate } from '..
 
 const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const { showToast } = useToast();
-  const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATE_TYPES.GRADIENT);
+  const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATE_TYPES.POETIC);
   const [preview, setPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -71,8 +71,8 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
                   key={key}
                   onClick={() => setSelectedTemplate(key)}
                   className={`p-4 rounded-xl border-2 transition-all ${selectedTemplate === key
-                      ? 'border-purple-600 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
+                    ? 'border-purple-600 bg-purple-50'
+                    : 'border-gray-200 hover:border-purple-300'
                     }`}
                 >
                   <div className="text-3xl mb-2">{template.icon}</div>

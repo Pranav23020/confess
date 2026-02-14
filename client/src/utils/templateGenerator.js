@@ -6,10 +6,17 @@ export const TEMPLATE_TYPES = {
   MINIMAL: 'minimal',
   COLORFUL: 'colorful',
   NEON: 'neon',
-  AESTHETIC: 'aesthetic'
+  AESTHETIC: 'aesthetic',
+  POETIC: 'poetic'
 };
 
 const TEMPLATES = {
+  [TEMPLATE_TYPES.POETIC]: {
+    name: 'Poetic',
+    background: '#ffffff',
+    textColor: '#1a1a1a',
+    icon: '✒️'
+  },
   [TEMPLATE_TYPES.GRADIENT]: {
     name: 'Gradient',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -80,6 +87,56 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
   canvas.width = 1080;
   canvas.height = 1920;
 
+  // Handle POETIC template specifically for the requested aesthetic
+  if (templateType === TEMPLATE_TYPES.POETIC) {
+    // 1. Clean White Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Configure Font (Serif, elegant)
+    ctx.font = 'normal 64px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#1a1a1a'; // Almost black
+    ctx.textBaseline = 'middle';
+
+    // 3. Prepare Text
+    const padding = 140; // Generous padding
+    const maxWidth = canvas.width - (padding * 2);
+    const lines = wrapText(ctx, confessionText, maxWidth);
+
+    const lineHeight = 100; // Loose line height
+    const totalTextHeight = lines.length * lineHeight;
+
+    // 4. Calculate Positioning (Centered block, left aligned text)
+    // Find the widest line to center the block horizontally
+    let maxLineWidth = 0;
+    lines.forEach(line => {
+      const width = ctx.measureText(line).width;
+      if (width > maxLineWidth) maxLineWidth = width;
+    });
+
+    const startX = (canvas.width - maxLineWidth) / 2;
+    const startY = (canvas.height - totalTextHeight) / 2;
+
+    // 5. Draw Text
+    lines.forEach((line, i) => {
+      ctx.textAlign = 'left';
+      ctx.fillText(line, startX, startY + (i * lineHeight));
+    });
+
+    // 6. Simple Footer (no extra decorations)
+    ctx.font = 'italic 40px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#666666'; // Muted grey
+    ctx.textAlign = 'center';
+
+    // Format: "date | anon.confess"
+    const footerText = 'anon.confess';
+    const date = new Date();
+    const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+    ctx.fillText(`${dateStr} | ${footerText}`, canvas.width / 2, startY + totalTextHeight + 150);
+
+    return canvas;
+  }
+
   // Apply background
   if (template.background.startsWith('linear-gradient')) {
     // Extract gradient colors
@@ -118,12 +175,12 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
   // Calculate text positioning
   const padding = 100;
   const maxWidth = canvas.width - (padding * 2);
-  
+
   // Prepare confession text
   ctx.font = '600 52px Arial';
   ctx.fillStyle = template.textColor;
   ctx.textAlign = 'center';
-  
+
   // Wrap text
   const lines = wrapText(ctx, confessionText, maxWidth);
   const lineHeight = 72;
@@ -133,7 +190,7 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
   // Draw confession text with quote marks
   ctx.font = 'bold 120px Georgia';
   ctx.fillText('"', canvas.width / 2 - 450, startY - 40);
-  
+
   ctx.font = '600 52px Arial';
   lines.forEach((line, index) => {
     ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
@@ -173,7 +230,7 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
 
 export const downloadTemplate = async (confessionText, templateType) => {
   const canvas = await generateTemplate(confessionText, templateType);
-  
+
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       resolve(blob);
