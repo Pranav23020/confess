@@ -22,13 +22,20 @@ const HomeScreen = () => {
   const [trendingLoading, setTrendingLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [newConfessionsCount, setNewConfessionsCount] = useState(0);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [dragStart, setDragStart] = useState(null);
+  const [draggedDistance, setDraggedDistance] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState('');
   const feedLimit = 1000;
 
   // Use a ref to track the latest selected category without triggering useEffect re-runs
   const categoryRef = useRef(selectedCategory);
+  const swipeRef = useRef(null);
 
   useEffect(() => {
     categoryRef.current = selectedCategory;
+    setCurrentCardIndex(0);
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -180,6 +187,92 @@ const HomeScreen = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMore, loadingMore, loading, page, fetchConfessions]);
 
+  // Auto-load more for desktop swiper view
+  useEffect(() => {
+    if (currentCardIndex >= confessions.length - 3 && hasMore && !loadingMore && !loading) {
+      fetchConfessions(page + 1, true);
+    }
+  }, [currentCardIndex, confessions.length, hasMore, loadingMore, loading, page, fetchConfessions]);
+
+  // Memoized card navigation functions
+  const handleNextCard = useCallback(() => {
+    if (currentCardIndex < filteredConfessions.length - 1 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('left');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex + 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
+    }
+  }, [currentCardIndex, filteredConfessions.length, isTransitioning]);
+
+  const handlePrevCard = useCallback(() => {
+    if (currentCardIndex > 0 && !isTransitioning) {
+      setIsTransitioning(true);
+      setSlideDirection('right');
+      setTimeout(() => {
+        setCurrentCardIndex(currentCardIndex - 1);
+        setSlideDirection('');
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
+    }
+  }, [currentCardIndex, isTransitioning]);
+
+  // Global mouse move/up handlers for proper drag detection
+  useEffect(() => {
+    if (dragStart === null) return;
+
+    const handleMouseMove = (e) => {
+      setDraggedDistance(e.clientX - dragStart);
+    };
+
+    const handleMouseUp = () => {
+      const threshold = 35;
+      if (draggedDistance > threshold) {
+        handlePrevCard();
+      } else if (draggedDistance < -threshold) {
+        handleNextCard();
+      }
+      setDragStart(null);
+      setDraggedDistance(0);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragStart, draggedDistance, handleNextCard, handlePrevCard]);
+
+  // Swipe handlers
+  const handleMouseDown = (e) => {
+    setDragStart(e.clientX);
+  };
+
+  const handleTouchStart = (e) => {
+    setDragStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    if (dragStart === null) return;
+    setDraggedDistance(e.touches[0].clientX - dragStart);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragStart === null) return;
+    const threshold = 50;
+    if (draggedDistance > threshold) {
+      handlePrevCard();
+    } else if (draggedDistance < -threshold) {
+      handleNextCard();
+    }
+    setDragStart(null);
+    setDraggedDistance(0);
+  };
+
 
 
 
@@ -296,21 +389,103 @@ const HomeScreen = () => {
                 description="The space is quiet. Be the first to share a thought in this safe haven."
               />
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:gap-8 pb-8">
-                {filteredConfessions.map((confession) => (
-                  <ConfessionCard
-                    key={confession._id}
-                    confession={confession}
-                    showExpiry={false}
-                  />
-                ))}
+              <>
+                {/* Desktop Swiper View - Hidden on mobile */}
+                <div className="hidden md:block">
+                  <div
+                    ref={swipeRef}
+                    onMouseDown={handleMouseDown}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className="relative w-full max-w-md lg:max-w-lg mx-auto mb-6 md:mb-8 h-[600px] lg:h-[650px] flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Card Container */}
+                    <div
+                      className={`w-full transition-all duration-300 ease-out ${dragStart ? 'cursor-grabbing' : 'cursor-grab'
+                        } ${slideDirection === 'left'
+                          ? 'animate-slide-out-left'
+                          : slideDirection === 'right'
+                            ? 'animate-slide-out-right'
+                            : 'animate-slide-in'
+                        }`}
+                      style={{
+                        transform: dragStart ? `translateX(${draggedDistance}px)` : 'translateX(0)',
+                        opacity: slideDirection ? 0 : 1,
+                      }}
+                    >
+                      <ConfessionCard
+                        key={filteredConfessions[currentCardIndex]._id}
+                        confession={filteredConfessions[currentCardIndex]}
+                        showExpiry={false}
+                      />
+                    </div>
 
-                {loadingMore && (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    {/* Left Arrow */}
+                    {currentCardIndex > 0 && (
+                      <button
+                        onClick={handlePrevCard}
+                        className="absolute left-0 lg:left-2 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-16 z-10 flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                      >
+                        <span className="material-symbols-outlined text-xl lg:text-2xl text-slate-900 dark:text-white">
+                          chevron_left
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Right Arrow */}
+                    {currentCardIndex < filteredConfessions.length - 1 && (
+                      <button
+                        onClick={handleNextCard}
+                        className="absolute right-0 lg:right-2 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-16 z-10 flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white dark:bg-surface-dark shadow-lg hover:scale-110 transition-transform border border-slate-200 dark:border-white/10"
+                      >
+                        <span className="material-symbols-outlined text-xl lg:text-2xl text-slate-900 dark:text-white">
+                          chevron_right
+                        </span>
+                      </button>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  {/* Card Counter */}
+                  <div className="flex items-center justify-center gap-2 mb-6 md:mb-8">
+                    <span className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400">
+                      {currentCardIndex + 1} / {filteredConfessions.length}
+                    </span>
+                    {loadingMore && (
+                      <span className="text-xs text-slate-500 dark:text-slate-500 animate-pulse">
+                        Loading more...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full max-w-3xl mx-auto h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-6 md:mb-8">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-300"
+                      style={{
+                        width: `${((currentCardIndex + 1) / filteredConfessions.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile Scrollable Feed - Hidden on desktop */}
+                <div className="md:hidden grid grid-cols-1 gap-6 sm:gap-8 pb-8">
+                  {filteredConfessions.map((confession) => (
+                    <ConfessionCard
+                      key={confession._id}
+                      confession={confession}
+                      showExpiry={false}
+                    />
+                  ))}
+
+                  {loadingMore && (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
