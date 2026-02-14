@@ -62,7 +62,7 @@ const CommentsModal = ({ isOpen, onClose, confession }) => {
       setPosting(true);
       await repliesAPI.create(confession._id, replyText, null);
       setReplyText('');
-      fetchReplies(); // Refresh replies
+      fetchReplies();
       showToast('Comment posted!', 'success');
     } catch (err) {
       showToast(err.response?.data?.error?.message || 'Failed to post comment', 'error');

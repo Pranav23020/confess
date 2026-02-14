@@ -26,7 +26,7 @@ const HomeScreen = () => {
   const [draggedDistance, setDraggedDistance] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slideDirection, setSlideDirection] = useState('');
-  const feedLimit = 20;
+  const feedLimit = 1000;
 
   // Use a ref to track the latest selected category without triggering useEffect re-runs
   const categoryRef = useRef(selectedCategory);
