@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useToast } from '../context/ToastContext';
-import { X, Download, Instagram, Share2, Copy, MessageCircle } from 'lucide-react';
+import { X, Instagram, Share2, Copy, MessageCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const ShareInboxModal = ({ isOpen, onClose, username }) => {
