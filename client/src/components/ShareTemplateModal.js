@@ -8,7 +8,8 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const [preview, setPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [step, setStep] = useState('template'); // 'template' or 'platform'
+  const [step, setStep] = useState('template'); // 'template', 'platform', or 'instagram-guide'
+  const [downloadedBlob, setDownloadedBlob] = useState(null);
 
   const generatePreview = useCallback(async (templateType) => {
     setIsGenerating(true);
@@ -68,15 +69,9 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
         showToast('Opening Facebook...', 'success');
         setTimeout(() => onClose(), 500);
       } else if (platform === 'instagram') {
-        // Instagram doesn't support direct sharing via URL
-        showToast('Save the image and upload it to Instagram manually', 'info');
-        // Download automatically
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `confession-${Date.now()}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
+        // Show Instagram upload guide
+        setDownloadedBlob(blob);
+        setStep('instagram-guide');
       } else if (platform === 'telegram') {
         // Share to Telegram
         const text = encodeURIComponent(`"${confessionText}"\n\nanonconfess.in`);
@@ -236,6 +231,119 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
                 >
                   <span className="material-icons">arrow_back</span>
                   Back
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 'instagram-guide' && (
+            <>
+              {/* Instagram Upload Instructions */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={() => setStep('platform')}
+                    className="text-gray-500 hover:text-gray-700 p-2"
+                  >
+                    <span className="material-icons">arrow_back</span>
+                  </button>
+                  <h2 className="text-xl font-bold text-gray-900">📸 Share on Instagram</h2>
+                </div>
+
+                {/* Step-by-step Guide */}
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">Download the Image</h3>
+                        <p className="text-sm text-gray-700">Click the "Download Now" button below to save the template to your device.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">Open Instagram</h3>
+                        <p className="text-sm text-gray-700">Launch the Instagram app on your phone and go to your Stories.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">Upload the Image</h3>
+                        <p className="text-sm text-gray-700">Tap the "+" button → Select "Story" → Choose the downloaded image → Next → Edit (add stickers, text if you want) → Share!</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">4</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">Add Link (Optional)</h3>
+                        <p className="text-sm text-gray-700">To let your friends send you anonymous messages:</p>
+                        <ul className="text-xs text-gray-600 mt-2 space-y-1 ml-4">
+                          <li>• Tap the link sticker (🔗) in your story editor</li>
+                          <li>• Paste: <span className="font-mono bg-white px-2 py-1 rounded text-xs font-semibold text-purple-600">anonconfess.in/[your-username]</span></li>
+                          <li>• Your friends can click to send you confessions!</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tips Box */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">💡</span>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-purple-900 mb-2">Pro Tips</h4>
+                      <ul className="text-sm text-purple-800 space-y-1">
+                        <li>✓ Image is already perfectly sized for Instagram Stories (9:16)</li>
+                        <li>✓ Make the link bigger for better visibility</li>
+                        <li>✓ You can customize with stickers and text before sharing</li>
+                        <li>✓ Add to your "Close Friends" story for better engagement</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setStep('platform')}
+                  className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => {
+                    if (downloadedBlob) {
+                      const url = URL.createObjectURL(downloadedBlob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `confession-${Date.now()}.png`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      showToast('Image downloaded! Open Instagram Stories now.', 'success');
+                      setTimeout(() => {
+                        setStep('template');
+                        onClose();
+                      }, 1000);
+                    }
+                  }}
+                  disabled={isSharing}
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <span className="material-icons">file_download</span>
+                  Download Now
                 </button>
               </div>
             </>
