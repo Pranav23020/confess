@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../context/ToastContext';
-import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, shareTemplate } from '../utils/templateGenerator';
+import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, shareTemplate, downloadTemplate } from '../utils/templateGenerator';
 
 const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const { showToast } = useToast();
@@ -8,6 +8,7 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const [preview, setPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [step, setStep] = useState('template'); // 'template' or 'platform'
 
   const generatePreview = useCallback(async (templateType) => {
     setIsGenerating(true);
@@ -27,15 +28,61 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
     }
   }, [isOpen, selectedTemplate, confessionText, generatePreview]);
 
-  const handleShare = async () => {
+  const handleShare = async (platform) => {
     setIsSharing(true);
     try {
-      const result = await shareTemplate(confessionText, selectedTemplate);
-      if (result.success) {
-        if (result.downloaded) {
-          showToast('Image downloaded! You can now share it on your stories.');
-        }
+      const blob = await downloadTemplate(confessionText, selectedTemplate);
+      
+      if (platform === 'copy') {
+        // Copy text to clipboard
+        await navigator.clipboard.writeText(`"${confessionText}"\n\nanonconfess.in`);
+        showToast('Copied to clipboard!', 'success');
         onClose();
+      } else if (platform === 'download') {
+        // Download image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `confession-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Image downloaded!', 'success');
+        onClose();
+      } else if (platform === 'whatsapp') {
+        // Share to WhatsApp
+        const text = encodeURIComponent(`"${confessionText}"\n\nCheck out anonconfess.in`);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+        showToast('Opening WhatsApp...', 'success');
+        setTimeout(() => onClose(), 500);
+      } else if (platform === 'twitter') {
+        // Share to Twitter
+        const text = encodeURIComponent(`"${confessionText}"\n\nanonconfess.in`);
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=https://anonconfess.in`, '_blank');
+        showToast('Opening Twitter...', 'success');
+        setTimeout(() => onClose(), 500);
+      } else if (platform === 'facebook') {
+        // Share to Facebook
+        const url = 'https://anonconfess.in';
+        const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+        showToast('Opening Facebook...', 'success');
+        setTimeout(() => onClose(), 500);
+      } else if (platform === 'instagram') {
+        // Instagram doesn't support direct sharing via URL
+        showToast('Save the image and upload it to Instagram manually', 'info');
+        // Download automatically
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `confession-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else if (platform === 'telegram') {
+        // Share to Telegram
+        const text = encodeURIComponent(`"${confessionText}"\n\nanonconfess.in`);
+        window.open(`https://t.me/share/url?url=https://anonconfess.in&text=${text}`, '_blank');
+        showToast('Opening Telegram...', 'success');
+        setTimeout(() => onClose(), 500);
       }
     } catch (error) {
       console.error('Error sharing:', error);
@@ -120,31 +167,79 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleShare}
-              disabled={isSharing || isGenerating}
-              className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isSharing ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  Sharing...
-                </>
-              ) : (
-                <>
-                  <span className="material-icons">share</span>
-                  Share Now
-                </>
-              )}
-            </button>
-          </div>
+          {step === 'template' && (
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setStep('platform')}
+                disabled={isGenerating}
+                className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <span className="material-icons">arrow_forward</span>
+                Next: Choose Platform
+              </button>
+            </div>
+          )}
+
+          {step === 'platform' && (
+            <>
+              {/* Platform Selection */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-4">Share to...</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { id: 'whatsapp', name: 'WhatsApp', icon: '💬', color: 'from-green-400 to-green-600' },
+                    { id: 'instagram', name: 'Instagram', icon: '📷', color: 'from-purple-400 to-pink-600' },
+                    { id: 'twitter', name: 'Twitter', icon: '𝕏', color: 'from-gray-800 to-black' },
+                    { id: 'facebook', name: 'Facebook', icon: 'f', color: 'from-blue-600 to-blue-800' },
+                    { id: 'telegram', name: 'Telegram', icon: '✈️', color: 'from-blue-400 to-cyan-500' },
+                    { id: 'copy', name: 'Copy Text', icon: '📋', color: 'from-gray-400 to-gray-600' },
+                  ].map((platform) => (
+                    <button
+                      key={platform.id}
+                      onClick={() => handleShare(platform.id)}
+                      disabled={isSharing}
+                      className={`p-4 rounded-xl border-2 border-transparent transition-all hover:shadow-lg disabled:opacity-50 ${
+                        isSharing ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      style={{
+                        background: isSharing ? '#f3f4f6' : `linear-gradient(135deg, ${platform.color.split('to')[1]})`
+                      }}
+                    >
+                      <div className="text-3xl mb-2">{platform.icon}</div>
+                      <div className="text-xs font-semibold text-white drop-shadow">{platform.name}</div>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handleShare('download')}
+                    disabled={isSharing}
+                    className={`p-4 rounded-xl border-2 border-gray-300 transition-all hover:shadow-lg disabled:opacity-50 ${
+                      isSharing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">⬇️</div>
+                    <div className="text-xs font-semibold text-gray-700">Download</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Back Button */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep('template')}
+                  className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-icons">arrow_back</span>
+                  Back
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
