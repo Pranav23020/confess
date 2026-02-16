@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Download, Instagram, Share2 } from 'lucide-react';
+import { X, Download, Instagram } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const ReplyModal = ({ message, onClose, onReplySave }) => {
