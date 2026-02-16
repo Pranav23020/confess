@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { tempMessagesAPI } from '../api';
 import { AuthContext } from '../context/AuthContext';
-import { Trash2, Clock, Share2, Copy, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trash2, Clock, Share2, Copy, RefreshCw } from 'lucide-react';
+
 import { useToast } from '../context/ToastContext';
 import BottomNav from '../components/BottomNav';
 
@@ -11,13 +11,8 @@ const AnonymousInboxScreen = () => {
     const { showToast } = useToast();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all'); // all
 
-    useEffect(() => {
-        fetchMessages();
-    }, []);
-
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         setLoading(true);
         try {
             const { data } = await tempMessagesAPI.getInbox();
@@ -29,7 +24,11 @@ const AnonymousInboxScreen = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
+
+    useEffect(() => {
+        fetchMessages();
+    }, [fetchMessages]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this message?')) return;
