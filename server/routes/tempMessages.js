@@ -3,12 +3,11 @@ const router = express.Router();
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const sanitizeHtml = require('sanitize-html');
-const { v4: uuidv4 } = require('uuid');
-const messageStore = require('../utils/messageStore');
+const TempMessage = require('../models/TempMessage');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 
-// Rate limiter: 5 requests per 10 minutes
+// Rate limiter: 5 requests per 10 minutes per IP
 const sendLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 5, // Limit each IP to 5 requests per window
@@ -54,28 +53,28 @@ router.post('/send', sendLimiter, async (req, res) => {
             allowedAttributes: {}
         });
 
-        // 4. Hash IP
+        // 4. Hash IP for security (stored but never exposed)
         const ip = req.ip || req.connection.remoteAddress;
         const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
 
-        // 5. Create Message Object
-        const now = Date.now();
-        const newMessage = {
-            id: uuidv4(),
-            receiver_username: receiver.username, // Store lowercase username
-            message: cleanMessage,
-            created_at: now,
-            expires_at: now + (72 * 60 * 60 * 1000), // 72 hours
-            ip_hash: ipHash,
-            is_read: false
-        };
+        // 5. Create and save message to MongoDB
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // 72 hours
 
-        // 6. Save to JSON store
-        messageStore.addMessage(newMessage);
+        const newMessage = new TempMessage({
+            receiver_username: receiver.username,
+            message: cleanMessage,
+            ip_hash: ipHash,
+            is_read: false,
+            created_at: now,
+            expires_at: expiresAt
+        });
+
+        await newMessage.save();
 
         res.status(201).json({
             success: true,
-            message: 'Message sent successfully. It will disappear in 72 hours.'
+            message: 'Message sent successfully. It will automatically disappear in 72 hours.'
         });
 
     } catch (error) {
@@ -88,20 +87,28 @@ router.post('/send', sendLimiter, async (req, res) => {
  * GET /api/temp-message/inbox
  * Private route to get messages for the logged-in user
  */
-router.get('/inbox', protect, (req, res) => {
+router.get('/inbox', protect, async (req, res) => {
     try {
-        // req.user is set by protect middleware
         const username = req.user.username;
-        const messages = messageStore.getMessagesForUser(username);
+
+        // Find all non-expired messages for this user
+        // MongoDB TTL index will auto-delete expired ones, but we filter just in case
+        const messages = await TempMessage.find({
+            receiver_username: username,
+            expires_at: { $gt: new Date() }
+        })
+            .sort({ created_at: -1 }) // Newest first
+            .select('-ip_hash') // Never return IP hash
+            .lean();
 
         res.json({
             success: true,
             messages: messages.map(m => ({
-                id: m.id,
+                id: m._id.toString(),
                 message: m.message,
-                created_at: m.created_at,
-                expires_at: m.expires_at,
-                // Do not return ip_hash to frontend
+                created_at: m.created_at.getTime(),
+                expires_at: m.expires_at.getTime(),
+                is_read: m.is_read
             }))
         });
     } catch (error) {
@@ -114,14 +121,18 @@ router.get('/inbox', protect, (req, res) => {
  * DELETE /api/temp-message/:id
  * Private route to delete a specific message
  */
-router.delete('/:id', protect, (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
     try {
         const messageId = req.params.id;
         const username = req.user.username;
 
-        const deleted = messageStore.deleteMessage(messageId, username);
+        // Delete only if the message belongs to the logged-in user
+        const result = await TempMessage.deleteOne({
+            _id: messageId,
+            receiver_username: username
+        });
 
-        if (deleted) {
+        if (result.deletedCount > 0) {
             res.json({ success: true, message: 'Message deleted' });
         } else {
             res.status(404).json({ error: { message: 'Message not found or unauthorized' } });

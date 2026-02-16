@@ -22,7 +22,6 @@ const pollRoutes = require('./routes/polls');
 const blockedKeywordsRoutes = require('./routes/blockedKeywords');
 const hashtagRoutes = require('./routes/hashtags');
 const tempMessageRoutes = require('./routes/tempMessages');
-const startMessageCleanupJob = require('./scheduler/messageCleanup');
 
 const app = express();
 const passport = require('passport');
@@ -118,11 +117,16 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ MongoDB connected successfully');
 
-    // Create TTL indexes
+    // Create TTL indexes for confessions
     const Confession = require('./models/Confession');
     Confession.collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
     Confession.collection.createIndex({ text: 'text' }); // Text search index
     console.log('✅ TTL and search indexes created for confessions');
+
+    // Create TTL index for temp messages (auto-delete after 72 hours)
+    const TempMessage = require('./models/TempMessage');
+    TempMessage.collection.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 });
+    console.log('✅ TTL index created for anonymous messages');
   })
   .catch(err => {
     console.error('❌ MongoDB connection error:', err);
@@ -214,9 +218,6 @@ server.listen(PORT, () => {
   setTimeout(async () => {
     await verifyEmailService();
   }, 1500);
-
-  // Start anonymous message cleanup scheduler
-  startMessageCleanupJob();
 });
 
 // Graceful shutdown
