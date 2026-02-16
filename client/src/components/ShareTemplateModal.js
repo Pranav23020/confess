@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../context/ToastContext';
-import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, shareTemplate, downloadTemplate } from '../utils/templateGenerator';
+import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, downloadTemplate } from '../utils/templateGenerator';
 
 const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const { showToast } = useToast();
