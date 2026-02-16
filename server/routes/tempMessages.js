@@ -143,4 +143,69 @@ router.delete('/:id', protect, async (req, res) => {
     }
 });
 
+/**
+ * PUT /api/temp-message/:id/reply
+ * Private route to reply to a specific message
+ */
+router.put('/:id/reply', protect, async (req, res) => {
+    try {
+        const messageId = req.params.id;
+        const username = req.user.username;
+        const { reply } = req.body;
+
+        // Validation
+        if (!reply || typeof reply !== 'string') {
+            return res.status(400).json({ error: { message: 'Reply text is required' } });
+        }
+
+        const trimmedReply = reply.trim();
+        if (trimmedReply.length < 1) {
+            return res.status(400).json({ error: { message: 'Reply cannot be empty' } });
+        }
+        if (trimmedReply.length > 500) {
+            return res.status(400).json({ error: { message: 'Reply cannot exceed 500 characters' } });
+        }
+
+        // Sanitize reply
+        const cleanReply = sanitizeHtml(trimmedReply, {
+            allowedTags: [],
+            allowedAttributes: {}
+        });
+
+        // Update the message with reply
+        const message = await TempMessage.findOneAndUpdate(
+            {
+                _id: messageId,
+                receiver_username: username
+            },
+            {
+                $set: {
+                    reply: cleanReply,
+                    replied_at: new Date()
+                }
+            },
+            { new: true }
+        );
+
+        if (!message) {
+            return res.status(404).json({ error: { message: 'Message not found or unauthorized' } });
+        }
+
+        res.json({
+            success: true,
+            message: 'Reply saved successfully',
+            data: {
+                id: message._id.toString(),
+                reply: message.reply,
+                replied_at: message.replied_at.getTime()
+            }
+        });
+
+    } catch (error) {
+        console.error('Error replying to message:', error);
+        res.status(500).json({ error: { message: 'Failed to save reply' } });
+    }
+});
+
 module.exports = router;
+

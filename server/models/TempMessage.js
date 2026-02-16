@@ -30,6 +30,15 @@ const tempMessageSchema = new mongoose.Schema({
         type: Date,
         required: true,
         index: true // For TTL index
+    },
+    reply: {
+        type: String,
+        maxlength: 500,
+        default: null
+    },
+    replied_at: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: false // We're using custom created_at

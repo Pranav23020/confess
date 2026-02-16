@@ -137,7 +137,10 @@ export const tempMessagesAPI = {
     api.get('/temp-message/inbox'),
 
   delete: (id) =>
-    api.delete(`/temp-message/${id}`)
+    api.delete(`/temp-message/${id}`),
+
+  reply: (id, replyText) =>
+    api.put(`/temp-message/${id}/reply`, { reply: replyText })
 };
 
 export default api;

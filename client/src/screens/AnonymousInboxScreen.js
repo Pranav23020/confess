@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { tempMessagesAPI } from '../api';
 import { AuthContext } from '../context/AuthContext';
-import { Trash2, Clock, Share2, Copy, RefreshCw } from 'lucide-react';
+import { Trash2, Clock, Share2, Copy, RefreshCw, MessageSquare } from 'lucide-react';
 
 import { useToast } from '../context/ToastContext';
 import BottomNav from '../components/BottomNav';
+import ReplyModal from '../components/ReplyModal';
 
 const AnonymousInboxScreen = () => {
     const { user } = useContext(AuthContext);
     const { showToast } = useToast();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [replyModalMessage, setReplyModalMessage] = useState(null);
 
     const fetchMessages = useCallback(async () => {
         setLoading(true);
@@ -39,6 +41,26 @@ const AnonymousInboxScreen = () => {
             showToast('Message deleted', 'success');
         } catch (err) {
             showToast('Failed to delete message', 'error');
+        }
+    };
+
+    const handleReply = (message) => {
+        setReplyModalMessage(message);
+    };
+
+    const handleReplySave = async (messageId, replyText) => {
+        try {
+            await tempMessagesAPI.reply(messageId, replyText);
+            // Update the message in state
+            setMessages(messages.map(m =>
+                m.id === messageId
+                    ? { ...m, reply: replyText, replied_at: Date.now() }
+                    : m
+            ));
+            showToast('Reply saved!', 'success');
+        } catch (err) {
+            showToast('Failed to save reply', 'error');
+            throw err;
         }
     };
 
@@ -152,13 +174,22 @@ const AnonymousInboxScreen = () => {
                                         </span>
                                     </div>
 
-                                    <button
-                                        onClick={() => handleDelete(item.id)}
-                                        className="p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-300 hover:text-red-500 transition-colors"
-                                        title="Delete Message"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleReply(item)}
+                                            className="p-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-300 hover:text-indigo-500 transition-colors"
+                                            title="Reply & Share"
+                                        >
+                                            <MessageSquare className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-300 hover:text-red-500 transition-colors"
+                                            title="Delete Message"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -167,6 +198,15 @@ const AnonymousInboxScreen = () => {
 
             </div>
             <BottomNav active="inbox" />
+
+            {/* Reply Modal */}
+            {replyModalMessage && (
+                <ReplyModal
+                    message={replyModalMessage}
+                    onClose={() => setReplyModalMessage(null)}
+                    onReplySave={handleReplySave}
+                />
+            )}
         </div>
     );
 };
