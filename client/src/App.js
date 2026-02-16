@@ -13,6 +13,8 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
+import AnonymousMessageScreen from './screens/AnonymousMessageScreen';
+import AnonymousInboxScreen from './screens/AnonymousInboxScreen';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { LikeCacheProvider } from './context/LikeCacheContext';
@@ -40,6 +42,8 @@ function App() {
                 <Route path="/limit-reached" element={<LimitReachedScreen />} />
                 <Route path="/report/:id/:type" element={<ReportScreen />} />
                 <Route path="/reports-history" element={<ReportsHistoryScreen />} />
+                <Route path="/u/:username" element={<AnonymousMessageScreen />} />
+                <Route path="/dashboard/anonymous" element={<AnonymousInboxScreen />} />
               </Routes>
             </div>
           </Router>

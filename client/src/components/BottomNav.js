@@ -24,6 +24,13 @@ const BottomNav = ({ active }) => {
           <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${active === 'new' ? 'text-primary' : 'text-slate-500'}`}>New</span>
         </Link>
 
+        {user && (
+          <Link to="/dashboard/anonymous" className={`flex flex-col items-center gap-0.5 group py-2 px-3 sm:px-4 rounded-2xl transition-all duration-300 min-h-[56px] min-w-[56px] flex justify-center items-center ${active === 'inbox' ? 'bg-primary/10' : ''}`}>
+            <span className={`material-symbols-outlined text-[22px] sm:text-[24px] transition-transform group-active:scale-90 ${active === 'inbox' ? 'text-primary filled' : 'text-slate-400 group-hover:text-slate-200'}`}>mail</span>
+            <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${active === 'inbox' ? 'text-primary' : 'text-slate-500'}`}>Inbox</span>
+          </Link>
+        )}
+
         <Link to={meLink} className={`flex flex-col items-center gap-0.5 group py-2 px-3 sm:px-4 rounded-2xl transition-all duration-300 min-h-[56px] min-w-[56px] flex justify-center items-center ${active === 'me' ? 'bg-primary/10' : ''}`}>
           <span className={`material-symbols-outlined text-[22px] sm:text-[24px] transition-transform group-active:scale-90 ${active === 'me' ? 'text-primary filled' : 'text-slate-400 group-hover:text-slate-200'}`}>person</span>
           <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${active === 'me' ? 'text-primary' : 'text-slate-500'}`}>{user ? 'Profile' : 'Login'}</span>

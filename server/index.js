@@ -21,6 +21,8 @@ const draftRoutes = require('./routes/drafts');
 const pollRoutes = require('./routes/polls');
 const blockedKeywordsRoutes = require('./routes/blockedKeywords');
 const hashtagRoutes = require('./routes/hashtags');
+const tempMessageRoutes = require('./routes/tempMessages');
+const startMessageCleanupJob = require('./scheduler/messageCleanup');
 
 const app = express();
 const passport = require('passport');
@@ -138,6 +140,7 @@ app.use('/api/drafts', draftRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/blocked-keywords', blockedKeywordsRoutes);
 app.use('/api/hashtags', hashtagRoutes);
+app.use('/api/temp-message', tempMessageRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -211,6 +214,9 @@ server.listen(PORT, () => {
   setTimeout(async () => {
     await verifyEmailService();
   }, 1500);
+
+  // Start anonymous message cleanup scheduler
+  startMessageCleanupJob();
 });
 
 // Graceful shutdown

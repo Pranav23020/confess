@@ -128,4 +128,16 @@ export const blockedKeywordsAPI = {
   remove: (id) => api.delete(`/blocked-keywords/${id}`),
 };
 
+// Temp Messages API
+export const tempMessagesAPI = {
+  send: (username, message) =>
+    api.post('/temp-message/send', { receiver_username: username, message }),
+
+  getInbox: () =>
+    api.get('/temp-message/inbox'),
+
+  delete: (id) =>
+    api.delete(`/temp-message/${id}`)
+};
+
 export default api;
