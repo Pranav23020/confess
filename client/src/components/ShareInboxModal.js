@@ -98,40 +98,45 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
               ref={storyRef}
               className="w-[300px] h-[533px] relative flex flex-col items-center justify-center overflow-hidden shadow-2xl rounded-2xl"
               style={{
-                background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)', // Peachy sunset gradient like NGL
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffa726 100%)',
               }}
             >
-              {/* Noise overlay */}
-              <div className="absolute inset-0 opacity-10 mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,...")' }}></div>
+              {/* Animated gradient overlay for depth */}
+              <div className="absolute inset-0 opacity-30" style={{
+                background: 'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.2) 0%, transparent 50%)'
+              }}></div>
 
               {/* Icon */}
               <div className="mb-6 relative">
-                <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-xl">
-                  <MessageCircle className="w-12 h-12 text-white" />
+                <div className="w-24 h-24 bg-white/25 backdrop-blur-lg rounded-full flex items-center justify-center border-2 border-white/40 shadow-2xl">
+                  <MessageCircle className="w-12 h-12 text-white drop-shadow-lg" strokeWidth={2.5} />
                 </div>
-                <div className="absolute top-0 right-0 w-8 h-8 bg-red-500 rounded-full border-4 border-white/20 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                <div className="absolute -top-1 -right-1 w-9 h-9 bg-gradient-to-br from-red-400 to-red-600 rounded-full border-3 border-white flex items-center justify-center text-white font-black text-xs shadow-xl">
                   1
                 </div>
               </div>
 
               {/* Text */}
-              <h1 className="text-white font-black text-3xl text-center leading-tight mb-12 drop-shadow-md px-6">
+              <h1 className="text-white font-black text-3xl text-center leading-tight mb-10 drop-shadow-2xl px-6" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
                 send me<br />anonymous<br />messages!
               </h1>
 
-              {/* Fake Link Sticker Box */}
-              <div className="bg-white rounded-xl px-6 py-4 shadow-xl flex items-center gap-3 transform -rotate-2 w-[80%] z-10">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
-                  <span className="material-icons text-xl font-bold">link</span>
+              {/* Improved Link Sticker Box */}
+              <div className="bg-white rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 transform -rotate-1 w-[85%] z-10 border-2 border-gray-100/50">
+                <div className="w-11 h-11 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Paste your link here!</span>
-                  <span className="text-sm font-bold text-slate-800 truncate max-w-[140px]">anonconfess.in/u/...</span>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-[9px] uppercase font-extrabold text-blue-500 tracking-widest mb-0.5">PASTE YOUR LINK HERE!</span>
+                  <span className="text-xs font-bold text-slate-600 truncate">anonconfess.in/u/...</span>
                 </div>
               </div>
 
-              {/* Arrows pointing up to the sticker */}
-              <div className="mt-4 flex gap-4 opacity-80">
+              {/* Subtle arrows pointing up */}
+              <div className="mt-6 flex gap-3 opacity-70">
                 <div className="animate-bounce delay-100">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
                 </div>
