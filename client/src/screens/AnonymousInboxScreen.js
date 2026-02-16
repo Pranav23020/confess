@@ -6,6 +6,7 @@ import { Trash2, Clock, Share2, Copy, RefreshCw, MessageSquare } from 'lucide-re
 import { useToast } from '../context/ToastContext';
 import BottomNav from '../components/BottomNav';
 import ReplyModal from '../components/ReplyModal';
+import ShareInboxModal from '../components/ShareInboxModal';
 
 const AnonymousInboxScreen = () => {
     const { user } = useContext(AuthContext);
@@ -13,6 +14,7 @@ const AnonymousInboxScreen = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [replyModalMessage, setReplyModalMessage] = useState(null);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const fetchMessages = useCallback(async () => {
         setLoading(true);
@@ -115,13 +117,13 @@ const AnonymousInboxScreen = () => {
                             <Copy className="w-4 h-4" />
                             Copy My Link
                         </button>
-                        <a
-                            href={`whatsapp://send?text=Send me an anonymous message! ${window.location.origin}/u/${user?.username}`}
-                            className="ml-2 p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-green-500"
-                            title="Share on WhatsApp"
+                        <button
+                            onClick={() => setShowShareModal(true)}
+                            className="ml-2 p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-green-500 hover:text-green-600"
+                            title="Share on multiple platforms"
                         >
                             <Share2 className="w-5 h-5" />
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -207,6 +209,13 @@ const AnonymousInboxScreen = () => {
                     onReplySave={handleReplySave}
                 />
             )}
+
+            {/* Share Modal */}
+            <ShareInboxModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+                username={user?.username}
+            />
         </div>
     );
 };
