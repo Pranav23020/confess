@@ -96,106 +96,171 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
             */}
             <div
               ref={storyRef}
-              className="w-[300px] h-[533px] relative flex flex-col items-center justify-center overflow-hidden shadow-2xl rounded-2xl"
+              className="w-[300px] h-[533px] relative flex flex-col items-center justify-center overflow-hidden rounded-2xl"
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffa726 100%)',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
               }}
             >
-              {/* Animated gradient overlay for depth */}
-              <div className="absolute inset-0 opacity-30" style={{
-                background: 'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.2) 0%, transparent 50%)'
+              {/* Glass blur overlay */}
+              <div className="absolute inset-0" style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(100px)',
               }}></div>
 
-              {/* Icon */}
-              <div className="mb-6 relative">
-                <div className="w-24 h-24 bg-white/25 backdrop-blur-lg rounded-full flex items-center justify-center border-2 border-white/40 shadow-2xl">
-                  <MessageCircle className="w-12 h-12 text-white drop-shadow-lg" strokeWidth={2.5} />
-                </div>
-                <div className="absolute -top-1 -right-1 w-9 h-9 bg-gradient-to-br from-red-400 to-red-600 rounded-full border-3 border-white flex items-center justify-center text-white font-black text-xs shadow-xl">
-                  1
-                </div>
-              </div>
+              {/* Floating glass orbs for depth */}
+              <div className="absolute top-10 right-8 w-32 h-32 rounded-full" style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                filter: 'blur(40px)',
+              }}></div>
+              <div className="absolute bottom-20 left-10 w-40 h-40 rounded-full" style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                filter: 'blur(50px)',
+              }}></div>
 
-              {/* Text */}
-              <h1 className="text-white font-black text-3xl text-center leading-tight mb-10 drop-shadow-2xl px-6" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-                send me<br />anonymous<br />messages!
-              </h1>
+              {/* Content container with glass effect */}
+              <div className="relative z-10 flex flex-col items-center w-full px-6">
 
-              {/* Improved Link Sticker Box */}
-              <div className="bg-white rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 transform -rotate-1 w-[85%] z-10 border-2 border-gray-100/50">
-                <div className="w-11 h-11 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                  </svg>
+                {/* Glass icon container */}
+                <div className="mb-8 relative">
+                  <div
+                    className="w-28 h-28 rounded-full flex items-center justify-center relative overflow-hidden"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+                    }}
+                  >
+                    <MessageCircle className="w-14 h-14 text-white drop-shadow-lg" strokeWidth={2} />
+                  </div>
+                  {/* Notification badge - also glass */}
+                  <div
+                    className="absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9))',
+                      backdropFilter: 'blur(10px)',
+                      border: '2px solid rgba(255, 255, 255, 0.4)',
+                      boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+                    }}
+                  >
+                    1
+                  </div>
                 </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-[9px] uppercase font-extrabold text-blue-500 tracking-widest mb-0.5">PASTE YOUR LINK HERE!</span>
-                  <span className="text-xs font-bold text-slate-600 truncate">anonconfess.in/u/...</span>
-                </div>
-              </div>
 
-              {/* Subtle arrows pointing up */}
-              <div className="mt-6 flex gap-3 opacity-70">
-                <div className="animate-bounce delay-100">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                {/* Text with glass background */}
+                <div
+                  className="mb-10 px-8 py-6 rounded-3xl"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+                  }}
+                >
+                  <h1 className="text-white font-black text-3xl text-center leading-tight" style={{
+                    textShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                    letterSpacing: '-0.02em'
+                  }}>
+                    send me<br />anonymous<br />messages!
+                  </h1>
                 </div>
-                <div className="animate-bounce delay-200">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                </div>
-                <div className="animate-bounce delay-300">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                </div>
-              </div>
 
-              {/* Bottom Branding */}
-              <div className="absolute bottom-8 text-white/60 font-bold text-sm tracking-widest uppercase">
-                Anon Confess
+                {/* Glass link sticker */}
+                <div
+                  className="px-6 py-4 rounded-2xl flex items-center gap-4 w-[90%] transform -rotate-1"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.5)',
+                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
+                  }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                    }}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-[10px] uppercase font-black tracking-widest mb-1" style={{
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text'
+                    }}>
+                      PASTE YOUR LINK HERE!
+                    </span>
+                    <span className="text-xs font-bold text-slate-700 truncate">anonconfess.in/u/...</span>
+                  </div>
+                </div>
+
+                {/* Subtle animated arrows */}
+                <div className="mt-6 flex gap-4 opacity-60">
+                  <div className="animate-bounce delay-100">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                  </div>
+                  <div className="animate-bounce delay-200">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                  </div>
+                  <div className="animate-bounce delay-300">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                  </div>
+                </div>
+
+                {/* Bottom Branding */}
+                <div className="absolute bottom-8 text-white/60 font-bold text-sm tracking-widest uppercase">
+                  Anon Confess
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Primary Action */}
-          <button
-            onClick={handleShareToInstagram}
-            disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <span className="animate-pulse">Generating...</span>
-            ) : (
-              <>
-                <Instagram className="w-5 h-5" />
-                Share to Instagram Story
-              </>
-            )}
-          </button>
-
-          {/* Secondary Actions */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Primary Action */}
             <button
-              onClick={copyLink}
-              className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+              onClick={handleShareToInstagram}
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <Copy className="w-4 h-4" />
-              Copy Link
+              {loading ? (
+                <span className="animate-pulse">Generating...</span>
+              ) : (
+                <>
+                  <Instagram className="w-5 h-5" />
+                  Share to Instagram Story
+                </>
+              )}
             </button>
-            <button
-              onClick={() => {
-                const text = `Send me anonymous messages! ${profileUrl}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-              }}
-              className="py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              WhatsApp
-            </button>
-          </div>
 
+            {/* Secondary Actions */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={copyLink}
+                className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                Copy Link
+              </button>
+              <button
+                onClick={() => {
+                  const text = `Send me anonymous messages! ${profileUrl}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                }}
+                className="py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                WhatsApp
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
-  );
+      );
 };
 
-export default ShareInboxModal;
+      export default ShareInboxModal;
