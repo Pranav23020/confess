@@ -219,48 +219,49 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
                 </div>
               </div>
             </div>
-
-            {/* Primary Action */}
-            <button
-              onClick={handleShareToInstagram}
-              disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <span className="animate-pulse">Generating...</span>
-              ) : (
-                <>
-                  <Instagram className="w-5 h-5" />
-                  Share to Instagram Story
-                </>
-              )}
-            </button>
-
-            {/* Secondary Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={copyLink}
-                className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Copy className="w-4 h-4" />
-                Copy Link
-              </button>
-              <button
-                onClick={() => {
-                  const text = `Send me anonymous messages! ${profileUrl}`;
-                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                }}
-                className="py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
-              >
-                <Share2 className="w-4 h-4" />
-                WhatsApp
-              </button>
-            </div>
-
           </div>
+
+          {/* Primary Action */}
+          <button
+            onClick={handleShareToInstagram}
+            disabled={loading}
+            className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <span className="animate-pulse">Generating...</span>
+            ) : (
+              <>
+                <Instagram className="w-5 h-5" />
+                Share to Instagram Story
+              </>
+            )}
+          </button>
+
+          {/* Secondary Actions */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={copyLink}
+              className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              Copy Link
+            </button>
+            <button
+              onClick={() => {
+                const text = `Send me anonymous messages! ${profileUrl}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+              }}
+              className="py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              WhatsApp
+            </button>
+          </div>
+
         </div>
       </div>
-      );
+    </div>
+  );
 };
 
-      export default ShareInboxModal;
+export default ShareInboxModal;
