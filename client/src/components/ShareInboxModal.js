@@ -149,7 +149,7 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
 
                 {/* Text with glass background */}
                 <div
-                  className="mb-10 px-8 py-6 rounded-3xl"
+                  className="mb-6 px-8 py-6 rounded-3xl"
                   style={{
                     background: 'rgba(255, 255, 255, 0.12)',
                     backdropFilter: 'blur(15px)',
@@ -165,9 +165,9 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
                   </h1>
                 </div>
 
-                {/* Glass link sticker */}
+                {/* New Call-to-Action */}
                 <div
-                  className="px-6 py-4 rounded-2xl flex items-center gap-4 w-[90%] transform -rotate-1"
+                  className="px-6 py-3 rounded-2xl flex items-center justify-center w-[90%] transform -rotate-1"
                   style={{
                     background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(20px)',
@@ -175,42 +175,7 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
                     boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
                   }}
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-                    style={{
-                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                      boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-                    }}
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[10px] uppercase font-black tracking-widest mb-1" style={{
-                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text'
-                    }}>
-                      PASTE YOUR LINK HERE!
-                    </span>
-                    <span className="text-xs font-bold text-slate-700 truncate">anonconfess.in/u/...</span>
-                  </div>
-                </div>
-
-                {/* Subtle animated arrows */}
-                <div className="mt-6 flex gap-4 opacity-60">
-                  <div className="animate-bounce delay-100">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                  </div>
-                  <div className="animate-bounce delay-200">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                  </div>
-                  <div className="animate-bounce delay-300">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                  </div>
+                  <span className="text-sm font-bold text-slate-700 text-center">Tap here to send a message!</span>
                 </div>
 
                 {/* Bottom Branding */}
@@ -218,6 +183,18 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
                   Anon Confess
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Link sticker tip */}
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-4 flex gap-3 items-start">
+            <span className="text-lg">🔗</span>
+            <div>
+              <p className="text-sm font-bold text-purple-800 dark:text-purple-300 mb-1">Add your link in Instagram</p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
+                After uploading, tap the <strong>Link sticker 🔗</strong> in Instagram's story editor and paste:<br />
+                <span className="font-mono bg-white dark:bg-slate-800 px-1 py-0.5 rounded text-purple-700 dark:text-purple-300 text-[11px] break-all">{profileUrl}</span>
+              </p>
             </div>
           </div>
 
