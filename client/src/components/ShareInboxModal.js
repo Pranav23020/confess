@@ -32,12 +32,10 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
       const dataUrl = await generateImage();
       if (!dataUrl) throw new Error('Failed to generate image');
 
-      // Convert DataURL to Blob
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       const file = new File([blob], 'anon-ask.png', { type: 'image/png' });
 
-      // Check if Web Share API supports files
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -46,15 +44,13 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
         });
         showToast('Opening Instagram...', 'success');
       } else {
-        // Fallback: Download image
         const link = document.createElement('a');
         link.download = 'anon-ask-story.png';
         link.href = dataUrl;
         link.click();
 
-        // Also copy link
         await navigator.clipboard.writeText(profileUrl);
-        alert('Image downloaded! 1. Open Instagram Story 2. Upload image 3. Paste the link!');
+        alert('Image downloaded! Upload it to Instagram Story and paste your link.');
       }
     } catch (error) {
       console.error('Sharing failed:', error);
@@ -71,142 +67,109 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[32px] max-w-sm w-full max-h-[90vh] overflow-y-auto border border-white/20 shadow-2xl relative">
 
-        {/* Close Button */}
+        {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 bg-black/30 hover:bg-black/50 rounded-full text-white"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="p-6 space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">Get Messages!</h2>
-            <p className="text-slate-500 text-sm">Share this to your story to start receiving anonymous messages.</p>
+
+          <div className="text-center">
+            <h2 className="text-2xl font-black">Get Messages 🚀</h2>
+            <p className="text-sm text-slate-500">Share to your story to start receiving anonymous messages.</p>
           </div>
 
-          {/* Story Preview Container */}
+          {/* STORY PREVIEW */}
           <div className="flex justify-center">
-            {/* 
-                This is the actual element converted to image. 
-                Exact dimensions: Aspect Ratio 9:16 approx or just card style.
-                Instagram Story is 1080x1920. We'll make a scaled version.
-            */}
             <div
               ref={storyRef}
-              className="w-[300px] h-[533px] relative flex flex-col items-center justify-center overflow-hidden rounded-2xl"
+              className="w-[300px] h-[533px] relative overflow-hidden rounded-[28px] flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+                background:
+                  'radial-gradient(circle at 20% 20%, #ff7ad9 0%, transparent 40%), radial-gradient(circle at 80% 30%, #7aa2ff 0%, transparent 45%), linear-gradient(160deg, #5f2eea 0%, #9f44d3 50%, #ff6ec7 100%)'
               }}
             >
-              {/* Glass blur overlay */}
-              <div className="absolute inset-0" style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(100px)',
-              }}></div>
+              {/* Glow */}
+              <div className="absolute inset-0 opacity-40 animate-pulse"
+                style={{
+                  background:
+                    'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25), transparent 60%)'
+                }}
+              />
 
-              {/* Floating glass orbs for depth */}
-              <div className="absolute top-10 right-8 w-32 h-32 rounded-full" style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                filter: 'blur(40px)',
-              }}></div>
-              <div className="absolute bottom-20 left-10 w-40 h-40 rounded-full" style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                filter: 'blur(50px)',
-              }}></div>
+              {/* Grain texture */}
+              <div className="absolute inset-0 mix-blend-overlay opacity-20"
+                style={{
+                  backgroundImage:
+                    'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence baseFrequency=\'0.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")'
+                }}
+              />
 
-              {/* Content container with glass effect */}
-              <div className="relative z-10 flex flex-col items-center w-full px-6">
+              {/* Content */}
+              <div className="relative z-10 flex flex-col items-center px-7 text-center">
 
-                {/* Glass icon container */}
-                <div className="mb-8 relative">
-                  <div
-                    className="w-28 h-28 rounded-full flex items-center justify-center relative overflow-hidden"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      backdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-                    }}
-                  >
-                    <MessageCircle className="w-14 h-14 text-white drop-shadow-lg" strokeWidth={2} />
-                  </div>
-                  {/* Notification badge - also glass */}
-                  <div
-                    className="absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9))',
-                      backdropFilter: 'blur(10px)',
-                      border: '2px solid rgba(255, 255, 255, 0.4)',
-                      boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
-                    }}
-                  >
-                    1
-                  </div>
-                </div>
-
-                {/* Text with glass background */}
-                <div
-                  className="mb-6 px-8 py-6 rounded-3xl"
+                {/* Username */}
+                <div className="mb-6 px-5 py-2 rounded-full text-white text-sm font-semibold tracking-wide"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    backdropFilter: 'blur(15px)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
-                  }}
-                >
-                  <h1 className="text-white font-black text-3xl text-center leading-tight" style={{
-                    textShadow: '0 2px 10px rgba(0,0,0,0.2)',
-                    letterSpacing: '-0.02em'
-                  }}>
-                    send me<br />anonymous<br />messages!
-                  </h1>
-                </div>
-
-                {/* New Call-to-Action */}
-                <div
-                  className="px-6 py-3 rounded-2xl flex items-center justify-center w-[90%] transform -rotate-1"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: 'rgba(255,255,255,0.18)',
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
+                    border: '1px solid rgba(255,255,255,0.35)'
                   }}
                 >
-                  <span className="text-sm font-bold text-slate-700 text-center">Tap here to send a message!</span>
+                  @{username}
                 </div>
 
-                {/* Bottom Branding */}
-                <div className="absolute bottom-8 text-white/60 font-bold text-sm tracking-widest uppercase">
-                  Anon Confess
+                <h1 className="text-white font-extrabold text-[34px] leading-[1.15] tracking-tight drop-shadow-xl">
+                  send me<br />anonymous<br />messages 💬
+                </h1>
+
+                {/* Fake message card */}
+                <div className="mt-10 w-full rounded-3xl px-6 py-5 text-left"
+                  style={{
+                    background: 'rgba(255,255,255,0.92)',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
+                  }}
+                >
+                  <p className="text-slate-800 text-[15px] font-semibold">
+                    Tap the link sticker<br />
+                    and tell me anything…<br />
+                    I won’t know who sent it 👀
+                  </p>
+                </div>
+
+                {/* Fake input */}
+                <div className="mt-4 w-full rounded-2xl px-4 py-3 flex items-center justify-between"
+                  style={{ background: 'rgba(255,255,255,0.75)' }}
+                >
+                  <span className="text-slate-500 text-sm">Type something…</span>
+                  <MessageCircle className="w-5 h-5 text-slate-400" />
+                </div>
+
+                <div className="absolute bottom-7 text-white/70 text-xs tracking-[0.3em] font-bold">
+                  ANON CONFESS
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Link sticker tip */}
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-4 flex gap-3 items-start">
-            <span className="text-lg">🔗</span>
-            <div>
-              <p className="text-sm font-bold text-purple-800 dark:text-purple-300 mb-1">Add your link in Instagram</p>
-              <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
-                After uploading, tap the <strong>Link sticker 🔗</strong> in Instagram's story editor and paste:<br />
-                <span className="font-mono bg-white dark:bg-slate-800 px-1 py-0.5 rounded text-purple-700 dark:text-purple-300 text-[11px] break-all">{profileUrl}</span>
-              </p>
-            </div>
+          {/* TIP */}
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-4 text-sm">
+            After uploading, add the <b>Link Sticker 🔗</b> and paste:
+            <div className="mt-2 font-mono text-xs break-all">{profileUrl}</div>
           </div>
 
-          {/* Primary Action */}
+          {/* SHARE */}
           <button
             onClick={handleShareToInstagram}
             disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <span className="animate-pulse">Generating...</span>
-            ) : (
+            {loading ? 'Generating...' : (
               <>
                 <Instagram className="w-5 h-5" />
                 Share to Instagram Story
@@ -214,21 +177,22 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
             )}
           </button>
 
-          {/* Secondary Actions */}
+          {/* OTHER ACTIONS */}
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={copyLink}
-              className="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+              className="py-3 bg-slate-100 dark:bg-slate-800 font-bold rounded-xl flex items-center justify-center gap-2"
             >
               <Copy className="w-4 h-4" />
               Copy Link
             </button>
+
             <button
               onClick={() => {
                 const text = `Send me anonymous messages! ${profileUrl}`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
               }}
-              className="py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+              className="py-3 bg-green-50 text-green-600 font-bold rounded-xl flex items-center justify-center gap-2"
             >
               <Share2 className="w-4 h-4" />
               WhatsApp
