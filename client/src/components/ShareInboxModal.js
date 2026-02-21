@@ -124,30 +124,26 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
                   @{username}
                 </div>
 
-                <h1 className="text-white font-extrabold text-[34px] leading-[1.15] tracking-tight drop-shadow-xl">
-                  send me<br />anonymous<br />messages 💬
+                <h1 className="text-white font-extrabold text-[36px] leading-[1.1] tracking-tight drop-shadow-xl">
+                  ask me<br />anything 🤫
                 </h1>
 
-                {/* Fake message card */}
-                <div className="mt-10 w-full rounded-3xl px-6 py-5 text-left"
+                {/* Paste link box */}
+                <div className="mt-10 w-full rounded-2xl px-5 py-4 flex items-center gap-3"
                   style={{
                     background: 'rgba(255,255,255,0.92)',
                     boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
                   }}
                 >
-                  <p className="text-slate-800 text-[15px] font-semibold">
-                    Tap the link sticker<br />
-                    and tell me anything…<br />
-                    I won’t know who sent it 👀
-                  </p>
-                </div>
-
-                {/* Fake input */}
-                <div className="mt-4 w-full rounded-2xl px-4 py-3 flex items-center justify-between"
-                  style={{ background: 'rgba(255,255,255,0.75)' }}
-                >
-                  <span className="text-slate-500 text-sm">Type something…</span>
-                  <MessageCircle className="w-5 h-5 text-slate-400" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #5f2eea, #ff6ec7)' }}
+                  >
+                    <svg width="16" height="16" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-500 text-sm font-medium">paste your link here</span>
                 </div>
 
                 <div className="absolute bottom-7 text-white/70 text-xs tracking-[0.3em] font-bold">
