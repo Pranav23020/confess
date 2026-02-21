@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useToast } from '../context/ToastContext';
-import { X, Instagram, Share2, Copy, MessageCircle } from 'lucide-react';
+import { X, Instagram, Share2, Copy } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const ShareInboxModal = ({ isOpen, onClose, username }) => {
@@ -50,7 +50,7 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
         link.click();
 
         await navigator.clipboard.writeText(profileUrl);
-        alert('Image downloaded! Upload it to Instagram Story and paste your link.');
+        alert('Image downloaded! Upload to Instagram Story and paste your link.');
       }
     } catch (error) {
       console.error('Sharing failed:', error);
@@ -80,82 +80,57 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
         <div className="p-6 space-y-6">
 
           <div className="text-center">
-            <h2 className="text-2xl font-black">Get Messages 🚀</h2>
-            <p className="text-sm text-slate-500">Share to your story to start receiving anonymous messages.</p>
+            <h2 className="text-2xl font-black">Share Your Link</h2>
+            <p className="text-sm text-slate-500">Post this to your story so people can ask anonymously.</p>
           </div>
 
           {/* STORY PREVIEW */}
           <div className="flex justify-center">
             <div
               ref={storyRef}
-              className="w-[300px] h-[533px] relative overflow-hidden rounded-[28px] flex items-center justify-center"
+              className="w-[300px] h-[533px] relative overflow-hidden rounded-[28px] flex flex-col items-center justify-center text-center px-6"
               style={{
                 background:
-                  'radial-gradient(circle at 20% 20%, #ff7ad9 0%, transparent 40%), radial-gradient(circle at 80% 30%, #7aa2ff 0%, transparent 45%), linear-gradient(160deg, #5f2eea 0%, #9f44d3 50%, #ff6ec7 100%)'
+                  'linear-gradient(160deg, #5f2eea 0%, #9f44d3 45%, #ff6ec7 100%)'
               }}
             >
-              {/* Glow */}
-              <div className="absolute inset-0 opacity-40 animate-pulse"
+
+              {/* Username */}
+              <div className="absolute top-8 px-5 py-2 rounded-full text-white text-sm font-semibold"
                 style={{
-                  background:
-                    'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25), transparent 60%)'
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.35)'
                 }}
-              />
+              >
+                @{username}
+              </div>
 
-              {/* Grain texture */}
-              <div className="absolute inset-0 mix-blend-overlay opacity-20"
+              {/* Main Title */}
+              <h1 className="text-white font-extrabold text-[36px] leading-tight drop-shadow-xl">
+                Ask me<br />anything
+              </h1>
+
+              {/* Link Box */}
+              <div className="mt-10 w-full rounded-2xl px-5 py-4 text-sm font-medium"
                 style={{
-                  backgroundImage:
-                    'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence baseFrequency=\'0.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")'
+                  background: '#ffffff',
+                  color: '#333',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.25)'
                 }}
-              />
+              >
+                Paste link here 🔗
+              </div>
 
-              {/* Content */}
-              <div className="relative z-10 flex flex-col items-center px-7 text-center">
-
-                {/* Username */}
-                <div className="mb-6 px-5 py-2 rounded-full text-white text-sm font-semibold tracking-wide"
-                  style={{
-                    background: 'rgba(255,255,255,0.18)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.35)'
-                  }}
-                >
-                  @{username}
-                </div>
-
-                <h1 className="text-white font-extrabold text-[36px] leading-[1.1] tracking-tight drop-shadow-xl">
-                  ask me<br />anything 🤫
-                </h1>
-
-                {/* Paste link box */}
-                <div className="mt-10 w-full rounded-2xl px-5 py-4 flex items-center gap-3"
-                  style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
-                  }}
-                >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #5f2eea, #ff6ec7)' }}
-                  >
-                    <svg width="16" height="16" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-500 text-sm font-medium">paste your link here</span>
-                </div>
-
-                <div className="absolute bottom-7 text-white/70 text-xs tracking-[0.3em] font-bold">
-                  ANON CONFESS
-                </div>
+              {/* Footer */}
+              <div className="absolute bottom-7 text-white/70 text-xs tracking-[0.25em] font-bold">
+                ANON CONFESS
               </div>
             </div>
           </div>
 
           {/* TIP */}
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-4 text-sm">
-            After uploading, add the <b>Link Sticker 🔗</b> and paste:
+            Add a <b>Link Sticker</b> in Instagram and paste:
             <div className="mt-2 font-mono text-xs break-all">{profileUrl}</div>
           </div>
 
@@ -185,7 +160,7 @@ const ShareInboxModal = ({ isOpen, onClose, username }) => {
 
             <button
               onClick={() => {
-                const text = `Send me anonymous messages! ${profileUrl}`;
+                const text = `Ask me anything ${profileUrl}`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
               }}
               className="py-3 bg-green-50 text-green-600 font-bold rounded-xl flex items-center justify-center gap-2"
