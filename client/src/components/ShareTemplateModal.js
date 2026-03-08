@@ -69,9 +69,27 @@ const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
         showToast('Opening Facebook...', 'success');
         setTimeout(() => onClose(), 500);
       } else if (platform === 'instagram') {
-        // Show Instagram upload guide
-        setDownloadedBlob(blob);
-        setStep('instagram-guide');
+        // Try native Web Share API for Mobile devices (pops open Instagram directly)
+        const file = new File([blob], 'confession.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Anonymous Message',
+              text: ''
+            });
+            showToast('Opening Share Menu...', 'success');
+            setTimeout(() => onClose(), 1000);
+          } catch (error) {
+            // User cancelled or share failed, fallback to guide
+            setDownloadedBlob(blob);
+            setStep('instagram-guide');
+          }
+        } else {
+          // Web Share API unsupported (Desktop etc), fallback to guide
+          setDownloadedBlob(blob);
+          setStep('instagram-guide');
+        }
       } else if (platform === 'telegram') {
         // Share to Telegram
         const text = encodeURIComponent(`"${confessionText}"\n\nanonconfess.in`);
