@@ -8,8 +8,8 @@ export const TEMPLATE_TYPES = {
 
 const TEMPLATES = {
   [TEMPLATE_TYPES.QNA]: {
-    name: 'Q&A Box',
-    background: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)',
+    name: 'Story Reply',
+    background: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)',
     textColor: '#111111',
     accentColor: '#FF416C',
     icon: '💬'
@@ -223,86 +223,73 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     return canvas;
   }
 
-  // Handle QNA template (NGL style inbox box)
+  // Handle QNA template (NGL style reply)
   if (templateType === TEMPLATE_TYPES.QNA) {
     // 1. Colorful Gradient Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    // Orange/Pink gradient
-    gradient.addColorStop(0, '#f12711');
-    gradient.addColorStop(1, '#f5af19');
+    // Vibrant sunset gradient
+    gradient.addColorStop(0, '#eb3349');
+    gradient.addColorStop(1, '#f45c43');
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Box dimensions
-    const boxWidth = 840;
-    const padding = 80;
+    const boxWidth = 860;
+    const paddingX = 60;
+    const paddingY = 70;
     
     // Text setup
-    ctx.font = '700 56px "Inter", "Segoe UI", Arial, sans-serif';
-    const lines = wrapText(ctx, confessionText, boxWidth - (padding * 2));
-    const lineHeight = 76;
+    ctx.font = '600 52px "Inter", "system-ui", "-apple-system", sans-serif';
+    const lines = wrapText(ctx, confessionText, boxWidth - (paddingX * 2));
+    const lineHeight = 68;
     const textHeight = lines.length * lineHeight;
     
-    const headerHeight = 140;
-    const footerHeight = 120;
-    const boxHeight = textHeight + headerHeight + footerHeight + (padding * 2);
+    const headerHeight = 70;
+    const boxHeight = textHeight + headerHeight + (paddingY * 2);
     
     const boxX = (canvas.width - boxWidth) / 2;
-    // Position slightly above center so they have room to type a reply natively on Instagram
-    const boxY = (canvas.height - boxHeight) / 2 - 200; 
+    // Position at the top portion of the screen to leave room at the bottom
+    const boxY = 320; 
 
     // Draw shadow
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 50;
-    ctx.shadowOffsetY = 25;
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 20;
 
-    // Draw main white box
-    ctx.fillStyle = '#ffffff';
-    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 48);
+    // Draw main white box (slightly translucent)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 36);
 
     // Reset shadow
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
 
-    // Draw Header with Gradient
-    ctx.save();
-    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 48);
-    ctx.clip();
-    
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-    ctx.fillRect(boxX, boxY, boxWidth, headerHeight);
-    
-    // Header Text
-    ctx.font = '800 42px "Inter", "Segoe UI", Arial, sans-serif';
-    ctx.fillStyle = '#000000';
+    // "Anonymous Question" Header
+    ctx.font = 'bold 32px "Inter", "system-ui", "-apple-system", sans-serif';
+    ctx.fillStyle = '#eb3349'; // Match gradient start
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Send me anonymous messages!', boxX + (boxWidth/2), boxY + (headerHeight/2));
-    ctx.restore();
+    ctx.textBaseline = 'top';
+    ctx.fillText('Anonymous Message:', canvas.width / 2, boxY + paddingY);
 
     // Draw Confession Text
-    ctx.font = '700 56px "Inter", "Segoe UI", Arial, sans-serif';
-    ctx.fillStyle = '#111111'; // Dark text
+    ctx.font = '700 52px "Inter", "system-ui", "-apple-system", sans-serif';
+    ctx.fillStyle = '#222222'; // Dark text
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     
-    const textStartY = boxY + headerHeight + padding;
+    const textStartY = boxY + paddingY + headerHeight;
     lines.forEach((line, i) => {
       ctx.fillText(line, canvas.width / 2, textStartY + (i * lineHeight));
     });
 
-    // Draw Footer Divider
-    ctx.fillStyle = '#eeeeee';
-    ctx.fillRect(boxX, boxY + boxHeight - footerHeight, boxWidth, 2);
-
-    // Draw Footer Branding
-    ctx.font = '600 36px "Inter", "Segoe UI", Arial, sans-serif';
-    ctx.fillStyle = '#888888';
+    // Branding at the bottom of the screen (not in the box)
+    ctx.font = 'bold 40px "Inter", "system-ui", "-apple-system", sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('👉 anonconfess.in 👈', canvas.width / 2, boxY + boxHeight - (footerHeight/2));
+    ctx.fillText('anonconfess.in', canvas.width / 2, canvas.height - 120);
     
     return canvas;
   }
