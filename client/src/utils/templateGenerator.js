@@ -2,22 +2,30 @@
 
 export const TEMPLATE_TYPES = {
   POETIC: 'poetic',
-  INSTAGRAM: 'instagram'
+  INSTAGRAM: 'instagram',
+  QNA: 'qna'
 };
 
 const TEMPLATES = {
+  [TEMPLATE_TYPES.QNA]: {
+    name: 'Q&A Box',
+    background: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)',
+    textColor: '#111111',
+    accentColor: '#FF416C',
+    icon: '💬'
+  },
+  [TEMPLATE_TYPES.INSTAGRAM]: {
+    name: 'Aesthetic',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    textColor: '#ffffff',
+    accentColor: '#ffd700',
+    icon: '📸'
+  },
   [TEMPLATE_TYPES.POETIC]: {
     name: 'Poetic',
     background: '#ffffff',
     textColor: '#1a1a1a',
     icon: '✒️'
-  },
-  [TEMPLATE_TYPES.INSTAGRAM]: {
-    name: 'Instagram',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    textColor: '#ffffff',
-    accentColor: '#ffd700',
-    icon: '📸'
   }
 };
 
@@ -212,6 +220,90 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.fillText('Tap to send your own', canvas.width / 2, canvas.height - 150);
 
+    return canvas;
+  }
+
+  // Handle QNA template (NGL style inbox box)
+  if (templateType === TEMPLATE_TYPES.QNA) {
+    // 1. Colorful Gradient Background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    // Orange/Pink gradient
+    gradient.addColorStop(0, '#f12711');
+    gradient.addColorStop(1, '#f5af19');
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Box dimensions
+    const boxWidth = 840;
+    const padding = 80;
+    
+    // Text setup
+    ctx.font = '700 56px "Inter", "Segoe UI", Arial, sans-serif';
+    const lines = wrapText(ctx, confessionText, boxWidth - (padding * 2));
+    const lineHeight = 76;
+    const textHeight = lines.length * lineHeight;
+    
+    const headerHeight = 140;
+    const footerHeight = 120;
+    const boxHeight = textHeight + headerHeight + footerHeight + (padding * 2);
+    
+    const boxX = (canvas.width - boxWidth) / 2;
+    // Position slightly above center so they have room to type a reply natively on Instagram
+    const boxY = (canvas.height - boxHeight) / 2 - 200; 
+
+    // Draw shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 50;
+    ctx.shadowOffsetY = 25;
+
+    // Draw main white box
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 48);
+
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Draw Header with Gradient
+    ctx.save();
+    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 48);
+    ctx.clip();
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    ctx.fillRect(boxX, boxY, boxWidth, headerHeight);
+    
+    // Header Text
+    ctx.font = '800 42px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Send me anonymous messages!', boxX + (boxWidth/2), boxY + (headerHeight/2));
+    ctx.restore();
+
+    // Draw Confession Text
+    ctx.font = '700 56px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#111111'; // Dark text
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    const textStartY = boxY + headerHeight + padding;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, textStartY + (i * lineHeight));
+    });
+
+    // Draw Footer Divider
+    ctx.fillStyle = '#eeeeee';
+    ctx.fillRect(boxX, boxY + boxHeight - footerHeight, boxWidth, 2);
+
+    // Draw Footer Branding
+    ctx.font = '600 36px "Inter", "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = '#888888';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('👉 anonconfess.in 👈', canvas.width / 2, boxY + boxHeight - (footerHeight/2));
+    
     return canvas;
   }
 

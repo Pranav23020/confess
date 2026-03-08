@@ -4,7 +4,7 @@ import { TEMPLATE_TYPES, TEMPLATES, getTemplatePreview, downloadTemplate } from 
 
 const ShareTemplateModal = ({ isOpen, onClose, confessionText }) => {
   const { showToast } = useToast();
-  const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATE_TYPES.INSTAGRAM);
+  const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATE_TYPES.QNA);
   const [preview, setPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
