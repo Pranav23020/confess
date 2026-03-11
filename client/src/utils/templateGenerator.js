@@ -31,21 +31,33 @@ const TEMPLATES = {
 
 // Wrap text to fit within canvas width
 const wrapText = (ctx, text, maxWidth) => {
-  const words = text.split(' ');
-  const lines = [];
-  let currentLine = words[0];
+  if (!text) return [];
 
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    const width = ctx.measureText(currentLine + ' ' + word).width;
-    if (width < maxWidth) {
-      currentLine += ' ' + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
+  const originalLines = text.split('\n');
+  const lines = [];
+
+  for (let originalLine of originalLines) {
+    if (originalLine.trim() === '') {
+      lines.push('');
+      continue;
     }
+    
+    const words = originalLine.split(' ');
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = ctx.measureText(currentLine + ' ' + word).width;
+      if (width < maxWidth) {
+        currentLine += ' ' + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
   }
-  lines.push(currentLine);
+  
   return lines;
 };
 
@@ -238,19 +250,19 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     const boxWidth = 860;
     const paddingX = 60;
     const paddingY = 70;
-    
+
     // Text setup
     ctx.font = '600 52px "Inter", "system-ui", "-apple-system", sans-serif';
     const lines = wrapText(ctx, confessionText, boxWidth - (paddingX * 2));
     const lineHeight = 68;
     const textHeight = lines.length * lineHeight;
-    
+
     const headerHeight = 70;
     const boxHeight = textHeight + headerHeight + (paddingY * 2);
-    
+
     const boxX = (canvas.width - boxWidth) / 2;
     // Position at the top portion of the screen to leave room at the bottom
-    const boxY = 320; 
+    const boxY = 320;
 
     // Draw shadow
     ctx.shadowColor = 'rgba(0,0,0,0.15)';
@@ -278,7 +290,7 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     ctx.fillStyle = '#222222'; // Dark text
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    
+
     const textStartY = boxY + paddingY + headerHeight;
     lines.forEach((line, i) => {
       ctx.fillText(line, canvas.width / 2, textStartY + (i * lineHeight));
@@ -290,7 +302,7 @@ export const generateTemplate = async (confessionText, templateType = TEMPLATE_T
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('anonconfess.in', canvas.width / 2, canvas.height - 120);
-    
+
     return canvas;
   }
 
