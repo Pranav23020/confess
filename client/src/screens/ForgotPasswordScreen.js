@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import api from '../api';
 import BottomNav from '../components/BottomNav';
 
@@ -27,6 +28,12 @@ const ForgotPasswordScreen = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
+            <Helmet>
+                <title>Forgot Password | AnonConfess</title>
+                <meta name="robots" content="noindex,nofollow" />
+                <link rel="canonical" href="https://www.anonconfess.in/forgot-password" />
+            </Helmet>
+
             <div className="flex-grow flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
                 {isSuccess ? (
                     <div className="sm:mx-auto sm:w-full sm:max-w-sm text-center">

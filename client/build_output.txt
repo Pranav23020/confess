@@ -1,0 +1,10 @@
+﻿
+> anonconfess-client@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Failed to compile.
+
+Module not found: Error: Can't resolve 'html2canvas' in 'C:\Users\PRANAV\Desktop\confess\client\src\components'
+
+

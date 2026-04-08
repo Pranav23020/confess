@@ -22,6 +22,7 @@ const pollRoutes = require('./routes/polls');
 const blockedKeywordsRoutes = require('./routes/blockedKeywords');
 const hashtagRoutes = require('./routes/hashtags');
 const tempMessageRoutes = require('./routes/tempMessages');
+const sitemapRoutes = require('./routes/sitemaps');
 
 const app = express();
 const passport = require('passport');
@@ -145,6 +146,9 @@ app.use('/api/polls', pollRoutes);
 app.use('/api/blocked-keywords', blockedKeywordsRoutes);
 app.use('/api/hashtags', hashtagRoutes);
 app.use('/api/temp-message', tempMessageRoutes);
+
+// Dynamic XML sitemaps for faster indexing of fresh confessions and hashtags
+app.use('/', sitemapRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

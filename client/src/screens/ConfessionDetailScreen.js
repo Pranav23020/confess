@@ -267,15 +267,23 @@ const ConfessionDetailScreen = () => {
     return text.length > 150 ? text.slice(0, 150) + '...' : text;
   };
 
+  const seoTitle = confession?.text
+    ? `Anonymous Confession: ${confession.text.slice(0, 55)}${confession.text.length > 55 ? '...' : ''} | AnonConfess`
+    : 'Anonymous Confession | AnonConfess';
+  const canonicalUrl = `https://www.anonconfess.in/confession/${id}`;
+
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark">
       {confession && (
         <Helmet>
-          <title>{`Confession: ${getSEODescription(confession.text).slice(0, 50)}... - AnonConfess`}</title>
+          <title>{seoTitle}</title>
           <meta name="description" content={getSEODescription(confession.text)} />
-          <meta property="og:title" content={`Anonymous Confession - AnonConfess`} />
+          <meta name="robots" content="index,follow,max-image-preview:large" />
+          <link rel="canonical" href={canonicalUrl} />
+          <meta property="og:title" content={seoTitle} />
           <meta property="og:description" content={getSEODescription(confession.text)} />
-          <meta property="og:url" content={window.location.href} />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={canonicalUrl} />
           {images.length > 0 && <meta property="og:image" content={getImageUrl(images[0])} />}
           <meta name="twitter:card" content="summary_large_image" />
         </Helmet>

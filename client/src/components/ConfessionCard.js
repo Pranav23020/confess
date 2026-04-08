@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useCallback } from 'react';
+import React, { useState, useContext, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'isomorphic-dompurify';
 import LikeButton from './LikeButton';
@@ -7,6 +7,36 @@ import CommentsModal from './CommentsModal';
 import HashtagBadges from './HashtagBadges';
 import { useLike } from '../hooks/useLike';
 import { AuthContext } from '../context/AuthContext';
+
+// ─── Static constants outside component (zero re-creation cost) ───────────────
+const GRADIENTS = [
+  'from-primary/60 to-purple-500/20',
+  'from-blue-500/40 to-primary/30',
+  'from-rose-500/30 to-orange-500/20',
+];
+
+const CATEGORY_LABELS = {
+  love: 'Love',
+  career: 'Career',
+  secrets: 'Secrets',
+  life: 'Life',
+  relationships: 'Relationships',
+  'mental-health': 'Mental Health',
+  other: 'Other',
+};
+
+const getGradientColors = (index) => GRADIENTS[index % GRADIENTS.length];
+
+const getTimerColor = (hours) => {
+  if (hours === 'Soon' || String(hours).includes('m')) return 'text-rose-400';
+  const h = parseInt(hours);
+  if (h < 3) return 'text-rose-400';
+  if (h < 12) return 'text-primary';
+  return 'text-blue-400';
+};
+
+const categoryLabel = (value) => CATEGORY_LABELS[value] || 'Other';
+// ─────────────────────────────────────────────────────────────────────────────
 
 const ConfessionCard = ({ confession, showExpiry = false }) => {
   const navigate = useNavigate();
@@ -30,35 +60,11 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
   const lastTapRef = useRef(0);
   const tapTimeoutRef = useRef(null);
 
-  const getGradientColors = (index) => {
-    const gradients = [
-      'from-primary/60 to-purple-500/20',
-      'from-blue-500/40 to-primary/30',
-      'from-rose-500/30 to-orange-500/20',
-    ];
-    return gradients[index % gradients.length];
-  };
-
-  const getTimerColor = (hours) => {
-    if (hours === 'Soon' || hours.includes('m')) return 'text-rose-400';
-    const h = parseInt(hours);
-    if (h < 3) return 'text-rose-400';
-    if (h < 12) return 'text-primary';
-    return 'text-blue-400';
-  };
-
-  const categoryLabel = (value) => {
-    const map = {
-      love: 'Love',
-      career: 'Career',
-      secrets: 'Secrets',
-      life: 'Life',
-      relationships: 'Relationships',
-      'mental-health': 'Mental Health',
-      other: 'Other'
-    };
-    return map[value] || 'Other';
-  };
+  // Memoize sanitized text — DOMPurify.sanitize() is not free on every render
+  const sanitizedText = useMemo(
+    () => DOMPurify.sanitize(confession.text.replace(/#[\w]+/gi, '').trim()),
+    [confession.text]
+  );
 
   const handleLike = useCallback(() => {
     if (!user) {
@@ -228,7 +234,7 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
             </div>
 
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-snug sm:leading-relaxed tracking-tight text-slate-800 dark:text-gray-100 mb-6 sm:mb-8 [text-wrap:balance]">
-              {DOMPurify.sanitize(confession.text.replace(/#[\w]+/gi, '').trim())}
+              {sanitizedText}
             </p>
 
             {/* Hashtags Display - Only visible to creator */}
@@ -251,6 +257,8 @@ const ConfessionCard = ({ confession, showExpiry = false }) => {
                       <img
                         src={getImageUrl(img)}
                         alt={`Confession ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full rounded-2xl sm:rounded-3xl object-cover max-h-48 sm:max-h-64 md:max-h-80 border border-white/5 shadow-lg shadow-black/20"
                         draggable={false}
                       />

@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { AuthContext } from '../context/AuthContext';
 import BottomNav from '../components/BottomNav';
 
@@ -44,6 +45,12 @@ const LoginScreen = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
+            <Helmet>
+                <title>Login | AnonConfess</title>
+                <meta name="robots" content="noindex,nofollow" />
+                <link rel="canonical" href="https://www.anonconfess.in/login" />
+            </Helmet>
+
             <div className="flex-grow flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <h2 className="mt-6 sm:mt-10 text-center text-xl sm:text-2xl font-bold leading-9 tracking-tight text-white">

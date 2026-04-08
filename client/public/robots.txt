@@ -1,25 +1,16 @@
 User-agent: *
 Allow: /
-Allow: /confession/
-Allow: /explore
-Allow: /hashtags/
-Allow: /profile
-Allow: /new
+
+# Keep private/auth and backend routes out of search results.
+Disallow: /api/
+Disallow: /dashboard/
 Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /admin
-Disallow: /api/
-Disallow: /?utm_
-Crawl-delay: 0
+Disallow: /reset-password/
+Disallow: /reports-history
 
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
+# Prevent crawling URL parameter variants that create duplicates.
+Disallow: /*?*
 
 Sitemap: https://www.anonconfess.in/sitemap.xml

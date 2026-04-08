@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Hash, TrendingUp, Zap } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import ConfessionCard from '../components/ConfessionCard';
@@ -15,6 +16,7 @@ const HashtagExploreScreen = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState(null);
+  const normalizedTag = (tag || '').toLowerCase().replace(/^#/, '');
 
   const fetchHashtagConfessions = useCallback(async () => {
     try {
@@ -54,6 +56,20 @@ const HashtagExploreScreen = () => {
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
+      <Helmet>
+        <title>#{normalizedTag} Anonymous Confessions | AnonConfess</title>
+        <meta
+          name="description"
+          content={`Read anonymous confessions under #${normalizedTag}. Discover real, unfiltered stories and join trending conversations.`}
+        />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href={`https://www.anonconfess.in/hashtags/${encodeURIComponent(normalizedTag)}`} />
+        <meta property="og:title" content={`#${normalizedTag} Anonymous Confessions | AnonConfess`} />
+        <meta property="og:description" content={`Explore anonymous confessions for #${normalizedTag}.`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://www.anonconfess.in/hashtags/${encodeURIComponent(normalizedTag)}`} />
+      </Helmet>
+
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/50 dark:bg-surface-dark/50 backdrop-blur-xl border-b border-white/10 dark:border-white/5">
         <div className="max-w-4xl mx-auto px-4 py-6">

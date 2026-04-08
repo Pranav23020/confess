@@ -323,11 +323,16 @@ const HomeScreen = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark">
       <Helmet>
-        <title>AnonConfess - Share Your Secrets Anonymously</title>
-        <meta name="description" content="A safe space to confess your secrets, love, and thoughts anonymously. Your confessions expire in 24 hours." />
-        <meta property="og:title" content="AnonConfess - Share Your Secrets Anonymously" />
-        <meta property="og:description" content="A safe space to confess your secrets, love, and thoughts anonymously. Your confessions expire in 24 hours." />
+        <title>Anonymous Confessions and Anonymous Messages | AnonConfess</title>
+        <meta name="description" content="Share anonymous confessions and send private anonymous messages instantly. No login needed. Safe, fast, and mobile-friendly for teens and young adults." />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href="https://www.anonconfess.in/" />
+        <meta property="og:title" content="Anonymous Confessions and Anonymous Messages | AnonConfess" />
+        <meta property="og:description" content="Share anonymous confessions and send private anonymous messages instantly. No login needed." />
+        <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.anonconfess.in/" />
+        <meta property="og:site_name" content="AnonConfess" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
       {/* Header */}
@@ -570,9 +575,10 @@ const HomeScreen = () => {
           canPost ? (
             <Link
               to="/new"
+              aria-label="New Confession"
               className="group flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/40 hover:shadow-primary/50 text-white transition-all duration-300 hover:scale-110 active:scale-95"
             >
-
+              <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:rotate-12 transition-transform duration-300">edit_note</span>
             </Link>
           ) : (
             <Link

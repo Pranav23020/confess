@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import BottomNav from '../components/BottomNav';
 import ConfessionCard from '../components/ConfessionCard';
 import { exploreAPI } from '../api';
@@ -77,6 +78,20 @@ const ExploreScreen = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen">
+      <Helmet>
+        <title>Explore Anonymous Confessions by Topic | AnonConfess</title>
+        <meta
+          name="description"
+          content="Discover trending anonymous confessions about love, career, life, and relationships. Explore real stories shared without judgment."
+        />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href="https://www.anonconfess.in/explore" />
+        <meta property="og:title" content="Explore Anonymous Confessions by Topic | AnonConfess" />
+        <meta property="og:description" content="Discover trending anonymous confessions by category and mood." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.anonconfess.in/explore" />
+      </Helmet>
+
       <div className="relative w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto pb-28 sm:pb-24 md:pb-8 px-3 sm:px-5 md:px-8 lg:px-12">
         {/* Header */}
         <header className="flex items-center justify-between pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20">
